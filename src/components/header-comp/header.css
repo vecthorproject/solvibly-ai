@@ -1,0 +1,47 @@
+.header{
+  position:relative;
+  height:12vh;
+  padding:0 2vw;
+  background-color: rgba(231, 224, 224, 0.986);
+  display:flex;
+  place-items: center;
+}
+
+#head-logo-cont{
+  margin-right: auto;
+  margin-left:1%;
+}
+
+#logo-img{
+  display:block;
+  max-width: 10.5%;
+}
+
+#head-title-cont{
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+#title-head-svg{
+  display:block;
+  max-width: 35vw;
+  margin-top:2%;
+}
+
+#head-links-cont{
+  display: flex;            /* Attiva il layout flessibile */
+  gap: 1vw;                 /* Spazio tra i link */
+  white-space: nowrap;      /* Impedisce il ritorno a capo */
+  padding:0;
+  margin-left:auto;
+  margin-right: 1%;
+}
+
+#head-links-cont a{
+  text-decoration: none;
+  font-size: 0.95em;
+  font-weight: 300;
+  color: black;
+}
+
