@@ -1,13 +1,19 @@
-import "./section1.css"
+/** @jsxImportSource @emotion/react */
+import styled from '@emotion/styled'
+import { css } from '@emotion/react'
+import { useState } from 'react';
 
 function SectionOne(){
     return(
         <>
-        <div className="sect1-text-cont">
-            <p className="intro-text">Work in fucking progress</p>
+        <div 
+        css={css`
+                `
+            }>
+            <p>Work in progress</p>
         </div>
         </>
     )
 }
 
-export default SectionOne
+export default SectionOne;
