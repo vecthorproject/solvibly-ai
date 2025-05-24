@@ -14,7 +14,7 @@ function SectionOne(){
                 css={css`
                 `
                 }>
-            Get started with: </p>
+            Get started with:</p>
         </div>
         </>
     )
