@@ -63,7 +63,7 @@ function Header() {
         <TitleImage src={solviblyTitleHead} alt="Title Solvibly AI" />
       </TitleContainer>
       <LinksContainer>
-        <AnchorLink>1st page</AnchorLink>
+        <AnchorLink>Home</AnchorLink>
         <AnchorLink>2nd page</AnchorLink>
         <AnchorLink>3rd page</AnchorLink>
       </LinksContainer>

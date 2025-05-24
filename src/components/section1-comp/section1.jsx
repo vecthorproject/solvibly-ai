@@ -7,10 +7,14 @@ function SectionOne(){
     return(
         <>
         <div 
-        css={css`
-                `
+            css={css`
+            margin-top:10px`
             }>
-            <p>Work in progress</p>
+            <p 
+                css={css`
+                `
+                }>
+            Get started with:</p>
         </div>
         </>
     )
