@@ -8,13 +8,17 @@ function SectionOne(){
         <>
         <div 
             css={css`
-            margin-top:10px`
+            margin-top:6.5vh`
             }>
-            <p 
+            <h1 
                 css={css`
+                    font-family: "Outfit",sans-serif;
+                    font-size: 2.5em;
+                    letter-spacing: 0.04em;
+                    word-spacing: 0.2em;
                 `
                 }>
-            Get started with:</p>
+            Get started with a new project</h1>
         </div>
         </>
     )
