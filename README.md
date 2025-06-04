@@ -1,12 +1,23 @@
-# React + Vite
+# Solvibly AI
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Solvibly AI is an AI-powered web application designed to help users manage, transform, and analyze financial data through a streamlined and intuitive interface.
+It is especially useful for assessing key financial indicators that may signal a business's solvency or potential risk, offering insights that support strategic decision-making.
 
-Currently, two official plugins are available:
+🚧 Currently in early development phase (v0.0.1).  
+🛠 Built with **React + Vite** and styled with **Emotion**.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Features (in progress)
 
-## Expanding the ESLint configuration
+- Modular component-based architecture
+- Responsive UI using styled components
+- Data input via text, document upload, or web browsing
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Development
+
+This project uses [Vite](https://vitejs.dev/) for fast development and bundling.
+
+To run the app locally:
+
+```bash
+npm install
+npm run dev
