@@ -1,7 +1,7 @@
 /** @jsxImportSource @emotion/react */
 import styled from '@emotion/styled';
 import { useState } from 'react';
-import solviblyLogo from '../../graphics/Header/logo/logosvg.svg';
+import solviblyLogo from '../../graphics/Header/Logo/logosvg.svg';
 
 // Header wrapper with bottom dotted border
 const HeaderContainer = styled.header`
@@ -53,6 +53,7 @@ const LogoContainer = styled.div`
 const LogoImage = styled.img`
   display: block;
   width: clamp(2.5rem, 4vw, 3.7rem); /* responsive scaling */
+  margin-bottom: 0.2rem;
 `;
 
 // Title container dynamically positioned, centered on larger screens
@@ -74,7 +75,6 @@ const TitleImage = styled.h1`
   font-family: 'Sansation', sans-serif;
   font-size: clamp(1.2rem, 2.2vw, 1.5rem);
   cursor: default;
-  user-select: none;
   text-align: center;
 `;
 

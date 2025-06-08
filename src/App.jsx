@@ -5,16 +5,18 @@ import './App.css'
 
 import Header from './components/header-comp/header.jsx'
 import SectionOne from './components/section1-comp/section1.jsx'
+import Footer from './components/footer-comp/footer.jsx'
 
 function App() {
   return (
     <>
     <Header />
-      <div>
+      <main>
         <SectionOne />
-      </div>
+      </main>
+    <Footer />
     </>
   )
 }
 
-export default App
+export default App;

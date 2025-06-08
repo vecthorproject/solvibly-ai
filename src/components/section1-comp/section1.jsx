@@ -21,7 +21,7 @@ const imageStyle = css`
   transition: transform 0.3s ease;
   cursor: pointer;
   border-radius: 50%;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.23);
   object-fit: cover;
 
   &:hover {
@@ -43,6 +43,11 @@ const descrFeatures = css`
 function SectionOne() {
   return (
     <>
+    <div 
+      css={css`
+        margin-top: 7rem;
+      `}
+    >
       <div
         css={css`
           margin-top: 4rem;
@@ -114,6 +119,7 @@ function SectionOne() {
           <p css={descrFeatures}>Browse from Web</p>
         </div>
       </div>
+    </div>
     </>
   );
 }
