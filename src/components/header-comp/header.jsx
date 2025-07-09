@@ -1,7 +1,10 @@
 /** @jsxImportSource @emotion/react */
 import styled from '@emotion/styled';
+import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import solviblyLogo from '../../graphics/Header/Logo/logosvg.svg';
+
+/** To-do: Fix the size of every screen (mobile, lap), remove "clamp" */
 
 // Header wrapper with bottom dotted border
 const HeaderContainer = styled.header`
@@ -74,7 +77,6 @@ const TitleContainer = styled.div`
 const TitleImage = styled.h1`
   font-family: 'Sansation', sans-serif;
   font-size: clamp(1.2rem, 2.2vw, 1.5rem);
-  cursor: default;
   text-align: center;
 `;
 
@@ -94,7 +96,7 @@ const LinksContainer = styled.div`
 `;
 
 // Each nav link with responsive font size
-const AnchorLink = styled.a`
+const AnchorLink = styled(Link)`
   cursor: pointer;
   text-decoration: none;
   font-family: "Cascadia Mono", system-ui, sans-serif;
@@ -105,6 +107,19 @@ const AnchorLink = styled.a`
 
   &:hover {
     color: #15a497;
+  }
+`;
+
+// Styled link component for internal navigation (reusable)
+const NeutralLink = styled(Link)`
+  text-decoration: none;
+  color: inherit;
+  font-weight: inherit;
+  display: inline-block;
+  cursor: pointer;
+
+  &:hover {
+    color: inherit;
   }
 `;
 
@@ -130,17 +145,21 @@ function Header() {
   return (
     <HeaderContainer>
       <LogoContainer>
-        <LogoImage src={solviblyLogo} alt="Logo Solvibly AI" />
+        <NeutralLink to="/">
+          <LogoImage src={solviblyLogo} alt="Logo Solvibly AI" />
+        </NeutralLink>
       </LogoContainer>
 
       <TitleContainer>
-        <TitleImage>
-          SOLVIBLY <strong>AI</strong>
-        </TitleImage>
+        <NeutralLink to="/">
+          <TitleImage>
+            SOLVIBLY <strong>AI</strong>
+          </TitleImage>
+        </NeutralLink>
       </TitleContainer>
 
       <LinksContainer>
-        <AnchorLink>Help</AnchorLink>
+        <AnchorLink to="/help">Help</AnchorLink>
         <AnchorLink>Premium</AnchorLink>
         <OtherPagesSymbol viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
           <circle cx="5" cy="12" r="1.5" />

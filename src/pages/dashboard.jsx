@@ -2,9 +2,11 @@
 import styled from '@emotion/styled';
 import { css } from '@emotion/react';
 import { useState } from 'react';
-import insertIcon from '../../graphics/Section1/Initial Menu/insert.svg';
-import uploadIcon from '../../graphics/Section1/Initial Menu/upload.svg';
-import searchIcon from '../../graphics/Section1/Initial Menu/search.svg';
+import insertIcon from '../../src/graphics/Dashboard/Initial Menu/insert.svg';
+import uploadIcon from '../../src/graphics/Dashboard/Initial Menu/upload.svg';
+import searchIcon from '../../src/graphics/Dashboard/Initial Menu/search.svg';
+
+/** To-do: Fix the size of every screen (mobile, lap), remove "clamp" */
 
 // Ensures all icon+text blocks have the same width for visual alignment
 const iconBox = css`
@@ -40,7 +42,7 @@ const descrFeatures = css`
   word-break: break-word;
 `;
 
-function SectionOne() {
+function DashboardPage() {
   return (
     <>
     <div 
@@ -124,4 +126,4 @@ function SectionOne() {
   );
 }
 
-export default SectionOne;
+export default DashboardPage;

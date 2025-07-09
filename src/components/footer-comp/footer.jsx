@@ -5,13 +5,15 @@ import iconLN from '../../graphics/Footer/Various/Social Icons/LN_Icon.svg';
 import iconFB from '../../graphics/Footer/Various/Social Icons/FB_Icon.svg';
 import iconX from '../../graphics/Footer/Various/Social Icons/X_Icon.svg';
 
+/** To-do: Fix the size of every screen (mobile, lap), remove "clamp" */
+
 const FooterContainer = styled.footer`
   background-color: #000;
   color: white;
   padding:
-         clamp(0.8rem, 2.5vw, 0.8rem) 
+         clamp(0.75rem, 2.5vw, 0.75rem) 
          clamp(3.2rem, 6vw, 3.2rem) 
-         clamp(0.8rem, 2.5vw, 0.8rem) 
+         clamp(0.75rem, 2.5vw, 0.75rem) 
          clamp(2.6rem, 5.2vw, 2.6rem);
   display: flex;
   justify-content: space-between;
@@ -27,13 +29,14 @@ const FooterLeft = styled.div`
 `;
 
 const FooterLogo = styled.img`
-  height: clamp(1.6rem, 4vw, 2.5rem); /* scalable logo */
+  height: clamp(1.6rem, 3.8vw, 2.4rem); /* scalable logo */
   margin-bottom: 0.2rem;
 `;
 
 const FooterInfo = styled.p`
   margin: 0;
-  font-size: clamp(0.6rem, 0.95vw, 0.9rem);
+  font-size: clamp(0.6rem, 0.94vw, 0.9rem);
+  font-weight: 300;
   cursor: default;
 `;
 
@@ -49,7 +52,7 @@ const FooterLinksContainer = styled.div`
 `;
 
 const FooterLinks = styled.a`
-  font-size: clamp(0.5rem, 0.85vw, 0.95rem);
+  font-size: clamp(0.5rem, 0.83vw, 0.93rem);
   color: white;
   text-decoration: none;
   cursor: pointer;
