@@ -1,16 +1,17 @@
 # Solvibly AI
 
-Solvibly AI is an AI-powered web application designed to help users manage, transform, and analyze financial data through a streamlined and intuitive interface.
-It is especially useful for assessing key financial indicators that may signal a business's solvency or potential risk, offering insights that support strategic decision-making.
+Solvibly AI is an AI-powered web application designed to help users manage, transform, and analyze financial data through a streamlined and intuitive interface.  
+It is especially useful for assessing key financial indicators that may signal a business's solvency or potential risk, offering insights to support strategic decision-making.  
+- ( ⚠️ WORK IN PROGRESS ⚠️ ~ features and design may change ) -
 
-🚧 Currently in early development phase (v0.0.1).  
+🚧 Currently in early development phase.  
 🛠 Built with **React + Vite** and styled with **Emotion**.
 
 ## Features (in progress)
 
-- Modular component-based architecture
-- Responsive UI using styled components
-- Data input via text, document upload, or web browsing
+- Modular, component-based architecture  
+- Responsive UI built with styled components  
+- Data input via text, document upload, or web browsing  
 
 ## Development
 
