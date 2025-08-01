@@ -160,7 +160,7 @@ function Header() {
 
       <LinksContainer>
         <AnchorLink to="/help">Help</AnchorLink>
-        <AnchorLink>Premium</AnchorLink>
+        <AnchorLink to="/pricing">Pricing</AnchorLink>
         <OtherPagesSymbol viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
           <circle cx="5" cy="12" r="1.5" />
           <circle cx="12" cy="12" r="1.5" />
