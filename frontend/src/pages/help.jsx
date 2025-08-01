@@ -2,7 +2,7 @@
 
 function HelpPage() {
     return(
-        <p>REACT ROUTER TEST: complete</p>
+        <p>REACT ROUTER TEST Help Page: complete</p>
     )
 }
 

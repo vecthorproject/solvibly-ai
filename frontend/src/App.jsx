@@ -9,6 +9,7 @@ import Footer from './components/footer-comp/footer.jsx'
 
 import DashboardPage from './pages/dashboard.jsx';
 import HelpPage from './pages/help.jsx';
+import PricingPage from './pages/pricing.jsx';
 
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
         <Routes>
           <Route path="/" element={<DashboardPage />} />
           <Route path="/help" element={<HelpPage />} />
+          <Route path="/pricing" element={<PricingPage />} />
           {/* Here add other Route(s) */}
         </Routes>
       </main>
