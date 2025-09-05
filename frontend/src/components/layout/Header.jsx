@@ -1,7 +1,5 @@
-/** @jsxImportSource @emotion/react */
 import styled from '@emotion/styled';
 import { Link } from 'react-router-dom';
-import { useState } from 'react';
 import solviblyLogo from '../../graphics/Header/Logo/logosvg.svg';
 
 /** To-do: Fix the size of every screen (mobile, lap), remove "clamp" */

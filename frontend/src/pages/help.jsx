@@ -1,9 +1,8 @@
 
-
-function HelpPage() {
+function Help() {
     return(
         <p>REACT ROUTER TEST Help Page: complete</p>
     )
 }
 
-export default HelpPage;
+export default Help;

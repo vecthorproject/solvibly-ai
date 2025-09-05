@@ -1,4 +1,3 @@
-/** @jsxImportSource @emotion/react */
 import styled from '@emotion/styled';
 import solviblyLogo from '../../graphics/Footer/Logo/logowhitesvg.svg';
 import iconLN from '../../graphics/Footer/Various/Social Icons/LN_Icon.svg';

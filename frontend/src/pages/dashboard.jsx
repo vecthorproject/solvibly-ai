@@ -1,7 +1,5 @@
-/** @jsxImportSource @emotion/react */
-import styled from '@emotion/styled';
 import { css } from '@emotion/react';
-import { useState } from 'react';
+import { Link } from "react-router-dom";
 import insertIcon from '../../src/graphics/Dashboard/Initial Menu/insert.svg';
 import uploadIcon from '../../src/graphics/Dashboard/Initial Menu/upload.svg';
 import searchIcon from '../../src/graphics/Dashboard/Initial Menu/search.svg';
@@ -40,9 +38,10 @@ const descrFeatures = css`
   max-width: 95%;
   min-height: 3rem;
   word-break: break-word;
+  user-select: none;
 `;
 
-function DashboardPage() {
+function Dashboard() {
   return (
     <>
     <div 
@@ -66,6 +65,7 @@ function DashboardPage() {
             letter-spacing: 0.04em;
             word-spacing: 0.2em;
             text-align: center;
+            user-select: none;
           `}
         >
           Get started with a new{' '}
@@ -84,14 +84,15 @@ function DashboardPage() {
         `}
       >
         <div css={iconBox}>
-          <img
-            src={insertIcon}
-            alt="Insert data Icon"
-            css={imageStyle}
-            role="button" /* accessibility: treat image like a button */
-            tabIndex={0}   /* makes image focusable with keyboard */ // to test
-            // onClick={() => console.log("Icon clicked!")}
-          />
+          <Link to="/insert-data" aria-label="Insert data">
+            <img
+              src={insertIcon}
+              alt="Insert data Icon"
+              css={imageStyle}
+              role="button" /* accessibility: treat image like a button */
+              tabIndex={0}   /* makes image focusable with keyboard */ // to test
+            />
+          </Link>
           <p css={descrFeatures}>Insert your data</p>
         </div>
 
@@ -126,4 +127,4 @@ function DashboardPage() {
   );
 }
 
-export default DashboardPage;
+export default Dashboard;
