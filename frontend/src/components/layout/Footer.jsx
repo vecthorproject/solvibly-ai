@@ -4,7 +4,7 @@ import iconLN from '../../graphics/Footer/Various/Social Icons/LN_Icon.svg';
 import iconFB from '../../graphics/Footer/Various/Social Icons/FB_Icon.svg';
 import iconX from '../../graphics/Footer/Various/Social Icons/X_Icon.svg';
 
-/** To-do: Fix the size of every screen (mobile, lap), remove "clamp" */
+// --- STYLED COMPONENTS ---
 
 const FooterContainer = styled.footer`
   background-color: #000;
@@ -89,16 +89,17 @@ const FooterSocialIconsLogo = styled.img`
   height: clamp(0.77rem, 1.25vw, 1rem);
 `;
 
+// --- MAIN COMPONENT ---
+
 function Footer() {
   return (
     <FooterContainer>
-      {/* Left: logo and copyright */}
+
       <FooterLeft>
         <FooterLogo src={solviblyLogo} alt="Solvibly logo" />
         <FooterInfo>© 2025 Solvibly AI</FooterInfo>
       </FooterLeft>
 
-      {/* Right: links and social */}
       <FooterRight>
         <FooterLinksContainer>
           <FooterLinks>Privacy policy</FooterLinks>

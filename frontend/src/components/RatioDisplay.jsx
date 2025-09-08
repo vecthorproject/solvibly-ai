@@ -230,7 +230,6 @@ function formatRatioValue(value, ratioKey) {
     return `${truncatedValue.toFixed(2)}x`;
 }
 
-
 // --- MAIN COMPONENT ---
 
 function RatioDisplay({ title, value, ratioKey, country, industrySector }) {
@@ -288,7 +287,15 @@ function RatioDisplay({ title, value, ratioKey, country, industrySector }) {
             )}
 
 
-            <SubLabelText>Industry Standard: <strong style={{ margin:'0', fontWeight:'500', fontSize:"0.95rem" }}>{benchmark}{ formattedValue.includes("x")? "x" : ` (${Math.trunc(benchmark * 100).toFixed(0)}%)`}</strong></SubLabelText>
+            <SubLabelText>
+              Industry Standard: 
+              <strong style={{ margin:'0', fontWeight:'500', fontSize:"0.95rem" }}>
+                {typeof benchmark === 'number'
+                  ? formatRatioValue(benchmark, ratioKey)
+                  : benchmark
+                }
+              </strong>
+            </SubLabelText>
 
             <LearnMoreBtn onClick={() => setExpandedSection(!expandedSection)}>
                 {expandedSection ? 'Show Less' : 'Learn More'}
