@@ -1,7 +1,8 @@
-/** @jsxImportSource @emotion/react */
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 import InsertYourDataForm from "../components/InsertYourDataForm";
+
+// --- STYLED COMPONENTS ---
 
 const StyledPageTitle = styled.h2`
   margin: 20px;
@@ -11,6 +12,8 @@ const StyledPageTitle = styled.h2`
   font-weight: 300;
   font-family: "Cascadia Mono", system-ui, sans-serif;
 `;
+
+// --- MAIN COMPONENT ---
 
 function InsertYourData() {
     return(

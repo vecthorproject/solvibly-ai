@@ -216,7 +216,7 @@ const labels = {
   }
 };
 
-// --- REACT COMPONENT ---
+// --- MAIN COMPONENT ---
 
 function InsertYourDataForm() {
   const navigate = useNavigate();
@@ -254,7 +254,6 @@ function InsertYourDataForm() {
         [name]: newValue
       };
 
-      // If the country is changed, reset the industry sector
       if (name === 'country') {
         newState.industrySector = '';
       }
@@ -269,7 +268,7 @@ function InsertYourDataForm() {
   const years = Array.from({ length: 11 }, (_, i) => currentYear - i);
 
   const handleSubmit = async (e) => {
-  e.preventDefault(); // No reloading
+  e.preventDefault();
   try {
     const response = await axios.post("http://127.0.0.1:5000/api/predict", formData, {
       headers: { "Content-Type": "application/json" }
@@ -405,10 +404,10 @@ function InsertYourDataForm() {
           <StyledInput type="number" id="operatingCashFlow" name="operatingCashFlow" value={formData.operatingCashFlow} onChange={handleChange} />
         </div>
 
-        {/* --- SUBMIT BUTTON --- */}
+        {/* --- SECTION 5: SUBMIT --- */}
         <ButtonWrapper>
           <StyledButton type="submit">
-            Calculate Risk {/* "Calculate ..." to change? */}
+            Calculate Risk
           </StyledButton>
         </ButtonWrapper>
       </div>

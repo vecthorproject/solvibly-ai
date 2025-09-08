@@ -2,9 +2,8 @@ import styled from '@emotion/styled';
 import { Link } from 'react-router-dom';
 import solviblyLogo from '../../graphics/Header/Logo/logosvg.svg';
 
-/** To-do: Fix the size of every screen (mobile, lap), remove "clamp" */
+// --- STYLED COMPONENTS ---
 
-// Header wrapper with bottom dotted border
 const HeaderContainer = styled.header`
   position: relative;
   height: 12vh;
@@ -45,19 +44,16 @@ const HeaderContainer = styled.header`
   }
 `;
 
-// Logo wrapper aligned to the left
 const LogoContainer = styled.div`
   margin-right: auto;
 `;
 
-// Logo image with max size using rem for consistency
 const LogoImage = styled.img`
   display: block;
   width: clamp(2.5rem, 4vw, 3.7rem); /* responsive scaling */
   margin-bottom: 0.2rem;
 `;
 
-// Title container dynamically positioned, centered on larger screens
 const TitleContainer = styled.div`
   position: absolute;
   left: 12%;
@@ -71,14 +67,12 @@ const TitleContainer = styled.div`
   }
 `;
 
-// Title text with responsive font size using clamp
 const TitleImage = styled.h1`
   font-family: 'Sansation', sans-serif;
   font-size: clamp(1.2rem, 2.2vw, 1.5rem);
   text-align: center;
 `;
 
-// Navigation links and icon, aligned to the right
 const LinksContainer = styled.div`
   display: flex;
   justify-content: center;
@@ -93,7 +87,6 @@ const LinksContainer = styled.div`
   }
 `;
 
-// Each nav link with responsive font size
 const AnchorLink = styled(Link)`
   cursor: pointer;
   text-decoration: none;
@@ -108,7 +101,6 @@ const AnchorLink = styled(Link)`
   }
 `;
 
-// Styled link component for internal navigation (reusable)
 const NeutralLink = styled(Link)`
   text-decoration: none;
   color: inherit;
@@ -121,7 +113,6 @@ const NeutralLink = styled(Link)`
   }
 `;
 
-// SVG icon with consistent size and hover color
 const OtherPagesSymbol = styled.svg`
   width: 1.5rem;
   height: 1.5rem;
@@ -138,6 +129,8 @@ const OtherPagesSymbol = styled.svg`
     height: 1.2rem;
   }
 `;
+
+// --- MAIN COMPONENT ---
 
 function Header() {
   return (

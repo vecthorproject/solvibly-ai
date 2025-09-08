@@ -4,9 +4,8 @@ import insertIcon from '../../src/graphics/Dashboard/Initial Menu/insert.svg';
 import uploadIcon from '../../src/graphics/Dashboard/Initial Menu/upload.svg';
 import searchIcon from '../../src/graphics/Dashboard/Initial Menu/search.svg';
 
-/** To-do: Fix the size of every screen (mobile, lap), remove "clamp" */
+// --- STYLED COMPONENTS ---
 
-// Ensures all icon+text blocks have the same width for visual alignment
 const iconBox = css`
   display: flex;
   flex-direction: column;
@@ -14,7 +13,6 @@ const iconBox = css`
   width: clamp(10rem, 22vw, 12rem); /* responsive width based on screen */
 `;
 
-// Responsive image style with max size limit
 const imageStyle = css`
   width: clamp(3.2rem, 7vw, 6.5rem);
   height: clamp(3.2rem, 7vw, 6.5rem);
@@ -29,7 +27,6 @@ const imageStyle = css`
   }
 `;
 
-// Text under each icon: styled for readability and consistency
 const descrFeatures = css`
   margin-top: 1.05rem;
   font-family: "Cascadia Mono", system-ui, sans-serif;
@@ -40,6 +37,8 @@ const descrFeatures = css`
   word-break: break-word;
   user-select: none;
 `;
+
+// --- MAIN COMPONENT ---
 
 function Dashboard() {
   return (
@@ -89,7 +88,7 @@ function Dashboard() {
               src={insertIcon}
               alt="Insert data Icon"
               css={imageStyle}
-              role="button" /* accessibility: treat image like a button */
+              role="button" 
               tabIndex={0}   /* makes image focusable with keyboard */ // to test
             />
           </Link>
@@ -102,8 +101,7 @@ function Dashboard() {
             alt="Upload data Icon"
             css={imageStyle}
             role="button"
-            tabIndex={0} // to test
-            // onClick={() => console.log("Icon clicked!")}
+            tabIndex={0} /* makes image focusable with keyboard */ // to test
           />
           <p css={descrFeatures}>
             Upload a document <span css={css`font-size: 0.7rem; display: block; margin-top: -0.009rem;`}>(.pdf, .doc, etc...)</span>
@@ -116,8 +114,7 @@ function Dashboard() {
             alt="Search data Icon"
             css={imageStyle}
             role="button"
-            tabIndex={0} // to test
-            // onClick={() => console.log("Icon clicked!")}
+            tabIndex={0} /* makes image focusable with keyboard */ // to test
           />
           <p css={descrFeatures}>Browse from Web</p>
         </div>

@@ -1,4 +1,3 @@
-/** @jsxImportSource @emotion/react */
 import styled from '@emotion/styled';
 import { useLocation } from 'react-router-dom';
 import RatioDisplay from '../components/RatioDisplay';
@@ -82,6 +81,8 @@ const SectionTitle = styled.h2`
   margin: 2.5rem 0 2rem 0;
 `;
 
+// --- KEY & TITLE DICTIONARY ---
+
 const pageConfig = {
   keyRatios: [
     { key: 'currentRatio', title: 'Current Ratio' },
@@ -104,19 +105,23 @@ const pageConfig = {
   ]
 };
 
+// --- HELPER FUNCTIONS ---
+
 function capitalize(name) {
   if (!name) return "";
   return name.charAt(0).toUpperCase() + name.slice(1);
 }
 
+// --- MAIN COMPONENT ---
+
 function Results() {
     const location = useLocation();
     const resultsData = location.state?.results || {};
 
-    const companyName = resultsData.companyName || "N/A";
-    const industrySector = resultsData.industrySector || "N/A";
-    const fiscalYear = resultsData.fiscalYear || "N/A";
-    const country = resultsData.country || "USA";
+    const companyName = resultsData.companyName ?? "N/A";
+    const industrySector = resultsData.industrySector ?? "N/A";
+    const fiscalYear = resultsData.fiscalYear ?? "N/A";
+    const country = resultsData.country ?? "USA";
     const riskScore = "Good"; // Placeholder
 
     return(
