@@ -1,6 +1,54 @@
 // This file centralizes all static data objects for the application.
 
+// --- DATA OBJECT FOR INDUSTRY SECTORS ---
+
+export const industrySectors = {
+  USA: [
+    { value: 'agriculture', label: 'Agriculture, Forestry and Fishing', shortLabel: 'Agriculture & Fishing' },
+    { value: 'mining', label: 'Mining and Quarrying', shortLabel: 'Mining' },
+    { value: 'manufacturing', label: 'Manufacturing', shortLabel: 'Manufacturing' },
+    { value: 'energy', label: 'Electricity, Gas, Steam and Air Conditioning Supply', shortLabel: 'Energy & Utilities' },
+    { value: 'water_waste', label: 'Water Supply; Sewerage, Waste Management', shortLabel: 'Water & Waste Mgmt.' },
+    { value: 'construction', label: 'Construction', shortLabel: 'Construction' },
+    { value: 'trade', label: 'Wholesale and Retail Trade', shortLabel: 'Wholesale & Retail' },
+    { value: 'transport', label: 'Transportation and Logistics', shortLabel: 'Transport & Logistics' },
+    { value: 'hospitality', label: 'Accommodation and Food Service Activities', shortLabel: 'Hospitality' },
+    { value: 'info_comm', label: 'Information and Communication', shortLabel: 'Info & Communication' },
+    { value: 'finance_insurance', label: 'Financial and Insurance Activities', shortLabel: 'Finance & Insurance' },
+    { value: 'real_estate', label: 'Real Estate Activities', shortLabel: 'Real Estate' },
+    { value: 'professional_scientific', label: 'Professional, Scientific and Technical Activities', shortLabel: 'Professional Services' },
+    { value: 'administrative', label: 'Administrative and Support Service Activities', shortLabel: 'Admin & Support' },
+    { value: 'public_admin', label: 'Public Administration and Defence', shortLabel: 'Public Administration' },
+    { value: 'education', label: 'Education', shortLabel: 'Education' },
+    { value: 'health_social', label: 'Human Health and Social Work Activities', shortLabel: 'Health & Social Work' },
+    { value: 'arts_entertainment', label: 'Arts, Entertainment and Recreation', shortLabel: 'Arts & Entertainment' },
+    { value: 'other_services', label: 'Other Service Activities', shortLabel: 'Other Services' },
+  ],
+  Italy: [
+    { value: 'agriculture', label: 'Agricoltura, Silvicoltura e Pesca', shortLabel: 'Agricoltura e Pesca' },
+    { value: 'mining', label: 'Estrazione di Minerali', shortLabel: 'Estrattivo' },
+    { value: 'manufacturing', label: 'Attività Manifatturiere', shortLabel: 'Manifatturiero' },
+    { value: 'energy', label: 'Fornitura di Energia Elettrica, Gas, Vapore', shortLabel: 'Energia e Utilities' },
+    { value: 'water_waste', label: 'Fornitura Acqua e Gestione Rifiuti', shortLabel: 'Acqua e Rifiuti' },
+    { value: 'construction', label: 'Costruzioni', shortLabel: 'Costruzioni' },
+    { value: 'trade', label: 'Commercio all\'Ingrosso e al Dettaglio', shortLabel: 'Commercio' },
+    { value: 'transport', label: 'Trasporto e Logistica', shortLabel: 'Trasporti e Logistica' },
+    { value: 'hospitality', label: 'Servizi di Alloggio e Ristorazione', shortLabel: 'Turismo e Ristorazione' },
+    { value: 'info_comm', label: 'Servizi di Informazione e Comunicazione', shortLabel: 'Informazione e TLC' },
+    { value: 'finance_insurance', label: 'Attività Finanziarie e Assicurative', shortLabel: 'Finanza e Assicurazioni' },
+    { value: 'real_estate', label: 'Attività Immobiliari', shortLabel: 'Immobiliare' },
+    { value: 'professional_scientific', label: 'Attività Professionali, Scientifiche e Tecniche', shortLabel: 'Servizi Professionali' },
+    { value: 'administrative', label: 'Attività Amministrative e di Supporto', shortLabel: 'Servizi di Supporto' },
+    { value: 'public_admin', label: 'Amministrazione Pubblica e Difesa', shortLabel: 'Pubblica Amministrazione' },
+    { value: 'education', label: 'Istruzione', shortLabel: 'Istruzione' },
+    { value: 'health_social', label: 'Sanità e Assistenza Sociale', shortLabel: 'Sanità' },
+    { value: 'arts_entertainment', label: 'Attività Artistiche, Intrattenimento e Divertimento', shortLabel: 'Arte e Intrattenimento' },
+    { value: 'other_services', label: 'Altre Attività di Servizi', shortLabel: 'Altri Servizi' },
+  ]
+};
+
 // --- DATA OBJECT FOR LEARN MORE ---
+
 export const ratioLearnMoreDict = {
   currentRatio: {
     significance: `Measures a company's ability to cover its short-term obligations (due within one year) with its short-term assets. It's a key indicator of liquidity.`,
@@ -16,7 +64,7 @@ export const ratioLearnMoreDict = {
   },
   debtToAssetsRatio: {
     significance: `Measures the percentage of a company's assets that are financed through debt.`,
-    notes: `A ratio below 0.5 (or 50%) is generally considered less risky, as it means the majority of assets are financed by equity.`
+    notes: `A ratio below 0.5 (50%) is generally considered less risky, as it means the majority of assets are financed by equity.`
   },
   interestCoverageRatio: {
     significance: `Measures how many times a company can cover its current interest payments with its available earnings (EBIT).`,
@@ -67,8 +115,8 @@ export const modelLearnMoreDict = {
   }
 };
 
-
 // --- INDUSTRY STANDARD BENCHMARKS (USA & ITALY) ---
+
 export const industryBenchmarks = {
   USA: {
     currentRatio: { // Format as 1.6x
@@ -137,6 +185,7 @@ export const industryBenchmarks = {
 };
 
 // --- THRESHOLDS FOR KEY RATIOS ---
+
 export const keyRatioThresholds = {
   currentRatio: {
     thresholds: [1.0, 2.0],
@@ -201,6 +250,7 @@ export const keyRatioThresholds = {
 };
 
 // --- THRESHOLDS FOR FINANCIAL DISTRESS MODELS ---
+
 export const modelThresholds = {
   altmanZScore: {
     thresholds: [1.81, 2.99],

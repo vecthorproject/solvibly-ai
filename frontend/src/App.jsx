@@ -13,6 +13,7 @@ import HelpPage from './pages/Help.jsx';
 import PricingPage from './pages/Pricing.jsx';
 
 import InsertYourDataPage from './pages/InsertYourData.jsx';
+import UploadYourDocsPage from './pages/UploadYourDocs.jsx';
 
 import ResultsPage from './pages/Results.jsx';
 
@@ -27,6 +28,7 @@ function App() {
           <Route path="/help" element={<HelpPage />} />
           <Route path="/pricing" element={<PricingPage />} />
           <Route path="/insert-data" element={<InsertYourDataPage />} />
+          <Route path="/upload-docs" element={<UploadYourDocsPage />} />
           <Route path="/results" element={<ResultsPage />} />
           {/* Here add other Route(s) */}
         </Routes>

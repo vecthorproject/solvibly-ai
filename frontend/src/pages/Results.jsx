@@ -4,6 +4,7 @@ import RatioDisplay from '../components/RatioDisplay';
 import ModelDisplay from '../components/ModelDisplay';
 import usaIcon from '../graphics/Results/usa.svg';
 import italyIcon from '../graphics/Results/italy.svg';
+import { industrySectors, modelThresholds } from '../data/DictOb.js';
 
 // --- STYLED COMPONENTS ---
 
@@ -40,14 +41,14 @@ const StyledTitleCompany = styled.h3`
   margin: 0;
   display: flex;
   align-items: center;
-  gap: 0.8rem;
+  gap: 0.5rem;
 `;
 
 const StyledSubtitle = styled.p`
   font-weight: 400;
   font-size: 1rem;
   color: #555;
-  margin: 0.2rem 0 0 0;
+  margin: 0.25rem 0 0 0;
 `;
 
 const RiskScoreLabel = styled.span`
@@ -107,9 +108,17 @@ const pageConfig = {
 
 // --- HELPER FUNCTIONS ---
 
-function capitalize(name) {
-  if (!name) return "";
-  return name.charAt(0).toUpperCase() + name.slice(1);
+function getSectorShortLabel(country, sectorKey) {
+  if (!sectorKey) {
+    return 'N/A';
+  }
+  const sectors = industrySectors[country] || [];
+  const sector = sectors.find(s => s.value === sectorKey);
+  return sector ? sector.shortLabel : 'N/A';
+}
+
+function getRiskInfo(value, modelKey) {
+    return { zone: 'Good', color: '#B7F0D8' }; // Placeholder
 }
 
 // --- MAIN COMPONENT ---
@@ -119,10 +128,12 @@ function Results() {
     const resultsData = location.state?.results || {};
 
     const companyName = resultsData.companyName ?? "N/A";
-    const industrySector = resultsData.industrySector ?? "N/A";
     const fiscalYear = resultsData.fiscalYear ?? "N/A";
     const country = resultsData.country ?? "USA";
-    const riskScore = "Good"; // Placeholder
+    const industrySectorKey = resultsData.industrySector || null; 
+    const industrySectorLabel = getSectorShortLabel(country, industrySectorKey);
+
+    const { zone: riskScore, color: riskColor } = getRiskInfo(resultsData.altmanZScore, 'altmanZScore'); //Placeholder
 
     return(
         <PageWrapper>
@@ -134,41 +145,41 @@ function Results() {
                             alt={country}
                             style={{ width: '1.8rem', height: '1.8rem', marginTop:"0.5rem" }}
                         />
-                        <span style={{ fontWeight: '400', marginRight: '0.2rem', marginLeft: '0.44rem' }}>|</span>
+                        <span style={{ fontWeight: '400', marginRight: '0.2rem', marginLeft: '0.4rem' }}>|</span>
                         {companyName}
                     </StyledTitleCompany>
                     <StyledSubtitle>
-                        {capitalize(industrySector)} | {fiscalYear}
+                        {industrySectorLabel} <span style={{display: 'inline', margin: '0 0.2rem 0 0.2rem' }}>-</span> {fiscalYear}
                     </StyledSubtitle>
                 </InfoBlock>
                 <RiskBlock>
                     <RiskScoreLabel>
                         Risk Score: 
-                        <RiskScoreValue>{riskScore}</RiskScoreValue>
+                        <RiskScoreValue bgColor={riskColor}>{riskScore}</RiskScoreValue>
                     </RiskScoreLabel>
                 </RiskBlock>
             </ResultsTopSection>
 
             <SectionTitle>Key Ratios</SectionTitle>
             {pageConfig.keyRatios.map(config => (
-              <RatioDisplay
-                key={config.key}
-                title={config.title}
-                value={resultsData[config.key]}
-                ratioKey={config.key}
-                country={country}
-                industrySector={industrySector}
-              />
+                <RatioDisplay
+                    key={config.key}
+                    title={config.title}
+                    value={resultsData[config.key]}
+                    ratioKey={config.key}
+                    country={country}
+                    industrySector={industrySectorKey}
+                />
             ))}
 
             <SectionTitle>Financial Distress Models</SectionTitle>
             {pageConfig.financialDistressModels.map(config => (
-              <ModelDisplay
-                key={config.key}
-                title={config.title}
-                value={resultsData[config.key]}
-                modelKey={config.key}
-              />
+                <ModelDisplay
+                    key={config.key}
+                    title={config.title}
+                    value={resultsData[config.key]}
+                    modelKey={config.key}
+                />
             ))}
         </PageWrapper>
     )
