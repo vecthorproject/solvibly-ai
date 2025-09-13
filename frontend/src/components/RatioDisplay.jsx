@@ -288,8 +288,8 @@ function RatioDisplay({ title, value, ratioKey, country, industrySector }) {
 
 
             <SubLabelText>
-              Industry Standard: 
-              <strong style={{ margin:'0', fontWeight:'500', fontSize:"0.95rem" }}>
+              Industry Standard:  
+              <strong style={{ margin:'0', marginLeft: '0.2rem', fontWeight:'500', fontSize:"0.95rem" }}>
                 {typeof benchmark === 'number'
                   ? formatRatioValue(benchmark, ratioKey)
                   : benchmark

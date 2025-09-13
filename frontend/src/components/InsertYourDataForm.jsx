@@ -3,15 +3,16 @@ import styled from '@emotion/styled';
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import axios from "axios";
+import { industrySectors } from '../data/DictOb';
 
 // --- STYLED COMPONENTS ---
 
 const StyledTitle = styled.h2`
-  margin: 20px 0;
+  margin: 1.3rem 0;
   font-size: 1.6rem;
   font-family: system-ui, sans-serif;
   color: #15a497;
-  text-align: center; // Center titles as well
+  text-align: center;
 `;
 
 const StyledLabel = styled.label`
@@ -20,7 +21,7 @@ const StyledLabel = styled.label`
   font-family: system-ui, sans-serif;
   color: black;
   margin: 10px 30px 10px 0;
-  text-align: left; // Align text back to the left
+  text-align: left;
   flex-shrink: 0;
   display: inline-block;
   white-space: nowrap;
@@ -39,6 +40,15 @@ const StyledInput = styled.input`
   &:focus {
     outline: none;
     border-color: #007bff;
+  }
+
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  &[type="number"] {
+    -moz-appearance: textfield;
   }
 `;
 
@@ -98,64 +108,17 @@ const StyledButton = styled.button`
 const formWrapperStyle = css`
   display: flex;
   flex-direction: column;
-  gap: 1.5rem; /* Increased gap for more vertical space */
+  gap: 1.5rem;
   max-width: 800px;
-  margin: 0 auto;
+  margin: 1.3rem auto;
 `;
 
 const formRowStyle = css`
   display: flex;
   align-items: center;
-  justify-content: center; // This centers the label + input group
+  justify-content: center;
   width: 100%;
 `;
-
-// --- DATA FOR DROPDOWNS ---
-
-const industrySectors = {
-  USA: [
-    { value: 'agriculture', label: 'Agriculture, Forestry and Fishing' },
-    { value: 'mining', label: 'Mining and Quarrying' },
-    { value: 'manufacturing', label: 'Manufacturing' },
-    { value: 'energy', label: 'Electricity, Gas, Steam and Air Conditioning Supply' },
-    { value: 'water_waste', label: 'Water Supply; Sewerage, Waste Management' },
-    { value: 'construction', label: 'Construction' },
-    { value: 'trade', label: 'Wholesale and Retail Trade' },
-    { value: 'transport', label: 'Transportation and Logistics' },
-    { value: 'hospitality', label: 'Accommodation and Food Service Activities' },
-    { value: 'info_comm', label: 'Information and Communication' },
-    { value: 'finance_insurance', label: 'Financial and Insurance Activities' },
-    { value: 'real_estate', label: 'Real Estate Activities' },
-    { value: 'professional_scientific', label: 'Professional, Scientific and Technical Activities' },
-    { value: 'administrative', label: 'Administrative and Support Service Activities' },
-    { value: 'public_admin', label: 'Public Administration and Defence' },
-    { value: 'education', label: 'Education' },
-    { value: 'health_social', label: 'Human Health and Social Work Activities' },
-    { value: 'arts_entertainment', label: 'Arts, Entertainment and Recreation' },
-    { value: 'other_services', label: 'Other Service Activities' },
-  ],
-  Italy: [
-    { value: 'agriculture', label: 'Agricoltura, Silvicoltura e Pesca' },
-    { value: 'mining', label: 'Estrazione di Minerali' },
-    { value: 'manufacturing', label: 'Attività Manifatturiere' },
-    { value: 'energy', label: 'Fornitura di Energia Elettrica, Gas, Vapore' },
-    { value: 'water_waste', label: 'Fornitura Acqua e Gestione Rifiuti' },
-    { value: 'construction', label: 'Costruzioni' },
-    { value: 'trade', label: 'Commercio all\'Ingrosso e al Dettaglio' },
-    { value: 'transport', label: 'Trasporto e Logistica' },
-    { value: 'hospitality', label: 'Servizi di Alloggio e Ristorazione' },
-    { value: 'info_comm', label: 'Servizi di Informazione e Comunicazione' },
-    { value: 'finance_insurance', label: 'Attività Finanziarie e Assicurative' },
-    { value: 'real_estate', label: 'Attività Immobiliari' },
-    { value: 'professional_scientific', label: 'Attività Professionali, Scientifiche e Tecniche' },
-    { value: 'administrative', label: 'Attività Amministrative e di Supporto' },
-    { value: 'public_admin', label: 'Amministrazione Pubblica e Difesa' },
-    { value: 'education', label: 'Istruzione' },
-    { value: 'health_social', label: 'Sanità e Assistenza Sociale' },
-    { value: 'arts_entertainment', label: 'Attività Artistiche, Intrattenimento e Divertimento' },
-    { value: 'other_services', label: 'Altre Attività di Servizi' },
-  ]
-};
 
 // --- LABEL & TITLE DICTIONARY ---
 
@@ -244,6 +207,26 @@ function InsertYourDataForm() {
     operatingCashFlow: '',
   });
 
+  const handleNumberInput = (e) => {
+    if (["e", "E", "+", "-"].includes(e.key)) {
+      e.preventDefault();
+    }
+    if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+      e.preventDefault();
+    }
+  };
+
+  const handlePaste = (e) => {
+    const paste = e.clipboardData.getData('text');
+    if (!/^\d*\.?\d*$/.test(paste)) {
+      e.preventDefault();
+    }
+  };
+
+  const handleWheel = (e) => {
+    e.target.blur();
+  };
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     const newValue = type === 'checkbox' ? checked : value;
@@ -268,16 +251,16 @@ function InsertYourDataForm() {
   const years = Array.from({ length: 11 }, (_, i) => currentYear - i);
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  try {
-    const response = await axios.post("http://127.0.0.1:5000/api/predict", formData, {
-      headers: { "Content-Type": "application/json" }
-    });
-    navigate('/results', { state: { results: response.data } });
-  } catch (error) {
-    console.error("Sending error:", error);
-  }
-};
+    e.preventDefault();
+    try {
+      const response = await axios.post("http://127.0.0.1:5000/api/predict", formData, {
+        headers: { "Content-Type": "application/json" }
+      });
+      navigate('/results', { state: { results: response.data } });
+    } catch (error) {
+      console.error("Sending error:", error);
+    }
+  };
 
   return (
     <form onSubmit={handleSubmit} autoComplete="off">
@@ -332,7 +315,7 @@ function InsertYourDataForm() {
         {formData.isPubliclyListed && (
           <div css={formRowStyle}>
             <StyledLabel htmlFor="marketCapitalization">{currentLabels.marketCapitalization}</StyledLabel>
-            <StyledInput type="number" id="marketCapitalization" name="marketCapitalization" value={formData.marketCapitalization} onChange={handleChange} />
+            <StyledInput type="number" id="marketCapitalization" name="marketCapitalization" value={formData.marketCapitalization} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
           </div>
         )}
 
@@ -341,23 +324,23 @@ function InsertYourDataForm() {
         
         <div css={formRowStyle}>
           <StyledLabel htmlFor="revenue">{currentLabels.revenue}</StyledLabel>
-          <StyledInput type="number" id="revenue" name="revenue" value={formData.revenue} onChange={handleChange} />
+          <StyledInput type="number" id="revenue" name="revenue" value={formData.revenue} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
         </div>
         <div css={formRowStyle}>
           <StyledLabel htmlFor="ebit">{currentLabels.ebit}</StyledLabel>
-          <StyledInput type="number" id="ebit" name="ebit" value={formData.ebit} onChange={handleChange} />
+          <StyledInput type="number" id="ebit" name="ebit" value={formData.ebit} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
         </div>
         <div css={formRowStyle}>
           <StyledLabel htmlFor="netIncome">{currentLabels.netIncome}</StyledLabel>
-          <StyledInput type="number" id="netIncome" name="netIncome" value={formData.netIncome} onChange={handleChange} />
+          <StyledInput type="number" id="netIncome" name="netIncome" value={formData.netIncome} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
         </div>
         <div css={formRowStyle}>
           <StyledLabel htmlFor="depreciationAndAmortization">{currentLabels.depreciationAndAmortization}</StyledLabel>
-          <StyledInput type="number" id="depreciationAndAmortization" name="depreciationAndAmortization" value={formData.depreciationAndAmortization} onChange={handleChange} />
+          <StyledInput type="number" id="depreciationAndAmortization" name="depreciationAndAmortization" value={formData.depreciationAndAmortization} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
         </div>
         <div css={formRowStyle}>
           <StyledLabel htmlFor="interestExpense">{currentLabels.interestExpense}</StyledLabel>
-          <StyledInput type="number" id="interestExpense" name="interestExpense" value={formData.interestExpense} onChange={handleChange} />
+          <StyledInput type="number" id="interestExpense" name="interestExpense" value={formData.interestExpense} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
         </div>
 
         {/* --- SECTION 3: BALANCE SHEET --- */}
@@ -365,35 +348,35 @@ function InsertYourDataForm() {
         
         <div css={formRowStyle}>
           <StyledLabel htmlFor="totalCurrentAssets">{currentLabels.totalCurrentAssets}</StyledLabel>
-          <StyledInput type="number" id="totalCurrentAssets" name="totalCurrentAssets" value={formData.totalCurrentAssets} onChange={handleChange} />
+          <StyledInput type="number" id="totalCurrentAssets" name="totalCurrentAssets" value={formData.totalCurrentAssets} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
         </div>
         <div css={formRowStyle}>
           <StyledLabel htmlFor="inventories">{currentLabels.inventories}</StyledLabel>
-          <StyledInput type="number" id="inventories" name="inventories" value={formData.inventories} onChange={handleChange} />
+          <StyledInput type="number" id="inventories" name="inventories" value={formData.inventories} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
         </div>
         <div css={formRowStyle}>
           <StyledLabel htmlFor="totalNonCurrentAssets">{currentLabels.totalNonCurrentAssets}</StyledLabel>
-          <StyledInput type="number" id="totalNonCurrentAssets" name="totalNonCurrentAssets" value={formData.totalNonCurrentAssets} onChange={handleChange} />
+          <StyledInput type="number" id="totalNonCurrentAssets" name="totalNonCurrentAssets" value={formData.totalNonCurrentAssets} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
         </div>
         <div css={formRowStyle}>
           <StyledLabel htmlFor="tangibleFixedAssets">{currentLabels.tangibleFixedAssets}</StyledLabel>
-          <StyledInput type="number" id="tangibleFixedAssets" name="tangibleFixedAssets" value={formData.tangibleFixedAssets} onChange={handleChange} />
+          <StyledInput type="number" id="tangibleFixedAssets" name="tangibleFixedAssets" value={formData.tangibleFixedAssets} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
         </div>
         <div css={formRowStyle}>
           <StyledLabel htmlFor="totalCurrentLiabilities">{currentLabels.totalCurrentLiabilities}</StyledLabel>
-          <StyledInput type="number" id="totalCurrentLiabilities" name="totalCurrentLiabilities" value={formData.totalCurrentLiabilities} onChange={handleChange} />
+          <StyledInput type="number" id="totalCurrentLiabilities" name="totalCurrentLiabilities" value={formData.totalCurrentLiabilities} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
         </div>
         <div css={formRowStyle}>
           <StyledLabel htmlFor="totalNonCurrentLiabilities">{currentLabels.totalNonCurrentLiabilities}</StyledLabel>
-          <StyledInput type="number" id="totalNonCurrentLiabilities" name="totalNonCurrentLiabilities" value={formData.totalNonCurrentLiabilities} onChange={handleChange} />
+          <StyledInput type="number" id="totalNonCurrentLiabilities" name="totalNonCurrentLiabilities" value={formData.totalNonCurrentLiabilities} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
         </div>
         <div css={formRowStyle}>
           <StyledLabel htmlFor="totalEquity">{currentLabels.totalEquity}</StyledLabel>
-          <StyledInput type="number" id="totalEquity" name="totalEquity" value={formData.totalEquity} onChange={handleChange} />
+          <StyledInput type="number" id="totalEquity" name="totalEquity" value={formData.totalEquity} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
         </div>
         <div css={formRowStyle}>
           <StyledLabel htmlFor="retainedEarnings">{currentLabels.retainedEarnings}</StyledLabel>
-          <StyledInput type="number" id="retainedEarnings" name="retainedEarnings" value={formData.retainedEarnings} onChange={handleChange} />
+          <StyledInput type="number" id="retainedEarnings" name="retainedEarnings" value={formData.retainedEarnings} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
         </div>
 
         {/* --- SECTION 4: CASH FLOW --- */}
@@ -401,7 +384,7 @@ function InsertYourDataForm() {
 
         <div css={formRowStyle}>
           <StyledLabel htmlFor="operatingCashFlow">{currentLabels.operatingCashFlow}</StyledLabel>
-          <StyledInput type="number" id="operatingCashFlow" name="operatingCashFlow" value={formData.operatingCashFlow} onChange={handleChange} />
+          <StyledInput type="number" id="operatingCashFlow" name="operatingCashFlow" value={formData.operatingCashFlow} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
         </div>
 
         {/* --- SECTION 5: SUBMIT --- */}

@@ -96,16 +96,16 @@ function Dashboard() {
         </div>
 
         <div css={iconBox}>
-          <img
-            src={uploadIcon}
-            alt="Upload data Icon"
-            css={imageStyle}
-            role="button"
-            tabIndex={0} /* makes image focusable with keyboard */ // to test
-          />
-          <p css={descrFeatures}>
-            Upload a document <span css={css`font-size: 0.7rem; display: block; margin-top: -0.009rem;`}>(.pdf, .doc, etc...)</span>
-          </p>
+          <Link to="/upload-docs" aria-label="Upload docs">
+            <img
+              src={uploadIcon}
+              alt="Upload docs Icon"
+              css={imageStyle}
+              role="button"
+              tabIndex={0} /* makes image focusable with keyboard */ // to test
+            />
+          </Link>
+          <p css={descrFeatures}>Upload your docs</p>
         </div>
 
         <div css={iconBox}>
