@@ -1,10 +1,11 @@
 from flask import Flask
 from flask_cors import CORS
-from controller import predict
+from controller import predict, upload
 
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}}) # To change before release!
 app.route('/api/predict', methods=['POST'])(predict)
+app.route('/api/upload', methods=['POST'])(upload)
 
 # --- RUN SERVER ---
 

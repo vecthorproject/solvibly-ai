@@ -1,13 +1,14 @@
-import { css } from '@emotion/react';
 import styled from '@emotion/styled';
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router";
 import { useDropzone } from 'react-dropzone';
 import axios from 'axios';
+
+import { industrySectors } from '../data/DictOb.js'; 
 import uploadDocsIcon from '../graphics/UploadDocs/uploadfindocsicon.svg';
 import pdfIcon from '../graphics/UploadDocs/pdficon.svg';
-import xlsIcon from '../graphics/UploadDocs/xlsicon.svg';
-import csvIcon from '../graphics/UploadDocs/csvicon.svg';
-import docIcon from '../graphics/UploadDocs/docicon.svg';
+import sendIcon from '../graphics/UploadDocs/sendicon.svg';
+import aiIcon from '../graphics/UploadDocs/aiicon.svg';
 
 // --- STYLED COMPONENTS ---
 
@@ -23,6 +24,24 @@ const UploadPanelWrapper = styled.div`
   background-color: #F0FAFA;
   border: 1px solid #E2E8F0;
   box-shadow: 0 8px 16px rgba(0,0,0,0.05);
+  position: relative;
+`;
+
+const LoadingOverlay = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.7);
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 16px;
+  opacity: ${props => props.isLoading ? 1 : 0};
+  visibility: ${props => props.isLoading ? 'visible' : 'hidden'};
+  transition: all 0.3s ease-in-out;
 `;
 
 const SelectorGroup = styled.div`
@@ -67,13 +86,34 @@ const StyledRadioButton = styled.label`
   font-weight: ${props => props.checked ? '600' : 'normal'};
 `;
 
+const StyledSelect = styled.select`
+  background-color: white;
+  color: black;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 0.6rem 1rem;
+  width: 220px;
+  box-sizing: border-box;
+  font-family: system-ui, sans-serif;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  &:focus {
+    outline: none;
+    border-color: #15a497;
+  }
+`;
+
 const SelectorsContainer = styled.div`
   margin: 0;
   display: flex;
   flex-direction: row;
-  gap: 8rem;
+  gap: 4rem;
   padding: 1rem 2rem;
   border-radius: 12px;
+  align-items: flex-start;
 `;
 
 const UploadDocContainer = styled.div`
@@ -129,12 +169,18 @@ const DocsIconsContainer = styled.div`
   margin: 0.6rem 0 1.2rem 0;
   display: flex;
   flex-direction: row;
-  gap: 1.2rem;
+  gap: 1.22rem;
 `;
 
 const StyledDocsIcon = styled.img`
-  width: 2.5rem;
-  opacity: 1;
+  max-width: 2.45rem;
+  opacity: 0.95;
+`;
+
+const StyledDocsIconAI = styled.img`
+  max-width: 2.6rem;
+  margin-left: -0.21rem;
+  opacity: 0.95;
 `;
 
 const ErrorMessage = styled.div`
@@ -152,6 +198,15 @@ const ErrorMessage = styled.div`
   padding: ${props => props.visible ? '1rem' : '0 1rem'};
   margin-top: ${props => props.visible ? '1rem' : '0'};
   transition: all 0.5s ease-in-out;
+`;
+
+const LoadingFeedbackWrapper = styled.div`
+  position: relative;
+  z-index: 20;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 `;
 
 const ButtonWrapper = styled.div`
@@ -176,6 +231,11 @@ const StyledButton = styled.button`
 
   &:hover {
     background-color: #118a7e;
+  }
+  
+  &:disabled {
+    background-color: #a0aec0;
+    cursor: not-allowed;
   }
 `;
 
@@ -207,7 +267,7 @@ const FilePreviewTitle = styled.p`
   font-weight: 400;
   font-style: italic;
   font-size: 0.71rem;
-  width: 10rem;         
+  width: 10rem;        
   margin: 0.18rem auto 0;
   text-align: center;
   white-space: nowrap;  
@@ -215,16 +275,24 @@ const FilePreviewTitle = styled.p`
   text-overflow: ellipsis; 
 `;
 
-const iconMap = {
-  pdf:  pdfIcon,
-  xls:  xlsIcon,
-  xlsx: xlsIcon,
-  csv:  csvIcon,
-  doc:  docIcon,
-  docx: docIcon
-};
+const ProgressBarContainer = styled.div`
+  width: 80%;
+  height: 10px;
+  background-color: #e2e8f0;
+  border-radius: 5px;
+  margin-top: 1rem;
+  overflow: hidden;
+`;
 
-// --- DATA FOR RADIOS ---
+const ProgressBarFill = styled.div`
+  height: 100%;
+  width: ${props => props.progress}%;
+  background-color: #15a497;
+  border-radius: 5px;
+  transition: width 0.4s ease-in-out;
+`;
+
+// --- DATA FOR SELECTIONS ---
 
 const countryChoice = [{value: "usa", label: "USA"}, {value: "italy", label: "Italia"}]
 const companyType = [{value: "public", label: "Public"}, {value: "private", label: "Private"}]
@@ -232,13 +300,25 @@ const companyType = [{value: "public", label: "Public"}, {value: "private", labe
 // --- MAIN COMPONENT ---
 
 function UploadYourDocsPanel() {
-    const [selectedCountry, setSelectedCountry] = useState("usa")
-    const [selectedType, setSelectedType] = useState("private")
+    const navigate = useNavigate();
+    
+    const [selectedCountry, setSelectedCountry] = useState("usa");
+    const [selectedType, setSelectedType] = useState("private");
+    const [selectedSector, setSelectedSector] = useState("");
     
     const [uploadError, setUploadError] = useState(null);
     const [errorVisible, setErrorVisible] = useState(false);
-
     const [uploadedFile, setUploadedFile] = useState(null);
+    
+    const [isLoading, setIsLoading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
+    const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+    const intervalRef = useRef(null);
+
+    useEffect(() => {
+        setSelectedSector("");
+    }, [selectedCountry]);
 
     useEffect(() => {
       let visibilityTimer;
@@ -260,7 +340,12 @@ function UploadYourDocsPanel() {
 
     const onDrop = (acceptedFiles, rejectedFiles) => {
       if (rejectedFiles && rejectedFiles.length > 0) {
-        setUploadError("File type not supported. Please upload one of the accepted formats.");
+        const firstError = rejectedFiles[0].errors[0];
+        if (firstError.code === 'file-too-large') {
+          setUploadError(`File is too large. Maximum file size is 10MB.`);
+        } else {
+          setUploadError("File type not supported. Please upload a valid PDF document.");
+        }
         setUploadedFile(null);
       } else {
         setUploadError(null);
@@ -271,20 +356,17 @@ function UploadYourDocsPanel() {
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
       accept: {
-        'application/pdf': ['.pdf'],
-        'application/vnd.ms-excel': ['.xls'],
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
-        'text/csv': ['.csv'],
-        'application/msword': ['.doc'],
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx']
+        'application/pdf': ['.pdf']
       },
       onDrop,
-      multiple: false 
+      multiple: false,
+      disabled: isLoading,
+      maxSize: 10485760, 
     });
 
     const handleUpload = async () => {
-      if (!uploadedFile) {
-        setUploadError("Please select a file to upload.");
+      if (!uploadedFile || !selectedSector) {
+        setUploadError("Please select the Country of Operation, choose a Company Type, and upload a PDF file to continue.");
         return;
       }
 
@@ -292,26 +374,56 @@ function UploadYourDocsPanel() {
       formData.append('document', uploadedFile);
       formData.append('country', selectedCountry);
       formData.append('companyType', selectedType);
+      formData.append('industrySector', selectedSector);
+
+      setIsLoading(true);
+      setUploadProgress(0);
+      setIsAnalyzing(false);
 
       try {
-        // Loading bar logic here...
         const response = await axios.post("http://127.0.0.1:5000/api/upload", formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
+          },
+          onUploadProgress: (progressEvent) => {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setUploadProgress(Math.min(percentCompleted, 80));
+
+            if (percentCompleted === 100) {
+              setIsAnalyzing(true);
+              intervalRef.current = setInterval(() => {
+                setUploadProgress(prevProgress => {
+                  if (prevProgress >= 99) {
+                    clearInterval(intervalRef.current);
+                    return 99;
+                  }
+                  return prevProgress + 1;
+                });
+              }, 400); 
+            }
           }
         });
-
-        console.log("Server response:", response.data);
-        // Go to results logic here...
+        
+        clearInterval(intervalRef.current);
+        setUploadProgress(100);
+        setTimeout(() => {
+            navigate('/results', { state: { results: response.data } });
+        }, 500);
         
       } catch (error) {
-        console.error("Errore durante l'invio:", error);
+        console.error("Uploading error:", error);
         setUploadError("An error occurred while uploading the file.");
+        setIsLoading(false);
+      } finally {
+        clearInterval(intervalRef.current);
       }
     };
+    
+    const countryKey = selectedCountry === 'italy' ? 'Italy' : 'USA';
 
     return(
         <UploadPanelWrapper>
+            <LoadingOverlay isLoading={isLoading} />
             
             <SelectorsContainer>
               <SelectorGroup>
@@ -326,6 +438,8 @@ function UploadYourDocsPanel() {
                         value={option.value}
                         checked={selectedCountry === option.value}
                         onChange={(e) => setSelectedCountry(e.target.value)}
+                        required
+                        autoComplete="off"
                       />
                       {option.label}
                     </StyledRadioButton>
@@ -345,32 +459,48 @@ function UploadYourDocsPanel() {
                         value={option.value}
                         checked={selectedType === option.value}
                         onChange={(e) => setSelectedType(e.target.value)}
+                        required
+                        autoComplete="off"
                       />
                       {option.label}
                     </StyledRadioButton>
                   ))}
                 </OptionsContainer>
               </SelectorGroup>
+
+              <SelectorGroup>
+                <SectionLabel>Industry Sector</SectionLabel>
+                <StyledSelect 
+                  name="industrySector" 
+                  value={selectedSector} 
+                  onChange={(e) => setSelectedSector(e.target.value)} 
+                  autoComplete="off"
+                >
+                  <option value="">-- Select a Sector --</option>
+                  {(industrySectors[countryKey] || []).map(sector => (
+                    <option key={sector.value} value={sector.value}>
+                      {sector.label}
+                    </option>
+                  ))}
+                </StyledSelect>
+              </SelectorGroup>
+
             </SelectorsContainer>
 
             <UploadDocContainer {...getRootProps()} isDragActive={isDragActive}>
               <input {...getInputProps()} />
-              {uploadedFile ? ( 
-                <>
+              {uploadedFile ? (
                 <FilePreviewContainer>
                   <FilePreview>Selected file:</FilePreview>
                   <StyledDocsIcon 
                     src={
                       uploadedFile &&
-                      iconMap[uploadedFile.name.split('.').pop().toLowerCase()]
-                      ? iconMap[uploadedFile.name.split('.').pop().toLowerCase()]
-                      : null
+                      pdfIcon
                     }
                     alt="Uploaded file Icon"
                   />
                   <FilePreviewTitle>{uploadedFile.name}</FilePreviewTitle>
                 </FilePreviewContainer>
-                </>
               ) : (
                 <>
                   <SquareDocContainer>
@@ -390,27 +520,31 @@ function UploadYourDocsPanel() {
             <DocsIconsContainer>
               <StyledDocsIcon 
                 src={pdfIcon} 
-                alt="PDF Icon" 
+                alt="Info PDF Icon" 
               />
               <StyledDocsIcon 
-                src={xlsIcon} 
-                alt="XLS Icon" 
+                src={sendIcon} 
+                alt="Info send Icon" 
               />
-              <StyledDocsIcon 
-                src={csvIcon} 
-                alt="CSV Icon" 
-              />
-              <StyledDocsIcon 
-                src={docIcon} 
-                alt="DOC Icon" 
+              <StyledDocsIconAI 
+                src={aiIcon} 
+                alt="Info AI Icon" 
               />
             </DocsIconsContainer>
 
-            <ButtonWrapper>
-              <StyledButton type='button' onClick={handleUpload}>
-                  Upload & Analyze
-              </StyledButton>
-            </ButtonWrapper>
+            <LoadingFeedbackWrapper>
+                {isLoading && (
+                  <ProgressBarContainer>
+                    <ProgressBarFill progress={uploadProgress} />
+                  </ProgressBarContainer>
+                )}
+
+                <ButtonWrapper>
+                  <StyledButton type='button' onClick={handleUpload} disabled={isLoading}>
+                      {isLoading ? (isAnalyzing ? 'Analyzing with AI...' : `Uploading... ${uploadProgress}%`) : 'Upload & Analyze'}
+                  </StyledButton>
+                </ButtonWrapper>
+            </LoadingFeedbackWrapper>
 
         </UploadPanelWrapper>
     )
