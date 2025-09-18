@@ -131,7 +131,11 @@ function Results() {
     const fiscalYear = resultsData.fiscalYear ?? "N/A";
     const country = resultsData.country ?? "USA";
     const industrySectorKey = resultsData.industrySector || null; 
-    const industrySectorLabel = getSectorShortLabel(country, industrySectorKey);
+    const countryKey =
+      country?.toLowerCase() === 'italy' ? 'Italy' :
+      country?.toLowerCase() === 'usa'   ? 'USA'   :
+      country;
+    const industrySectorLabel = getSectorShortLabel(countryKey, industrySectorKey);
 
     const { zone: riskScore, color: riskColor } = getRiskInfo(resultsData.altmanZScore, 'altmanZScore'); //Placeholder
 

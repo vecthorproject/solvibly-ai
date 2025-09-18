@@ -233,12 +233,15 @@ function formatRatioValue(value, ratioKey) {
 // --- MAIN COMPONENT ---
 
 function RatioDisplay({ title, value, ratioKey, country, industrySector }) {
+
     const [expandedSection, setExpandedSection] = useState(false);
 
     const config = keyRatioThresholds[ratioKey];
     const isNumericValue = typeof value === 'number';
     
-    const benchmark = industryBenchmarks[country]?.[ratioKey]?.[industrySector] || 'N/A';
+    const normalizedCountry = country?.toLowerCase() === 'italy' ? 'Italy' : country?.toLowerCase() === 'usa' ? 'USA' : country;
+    const benchmark = industryBenchmarks[normalizedCountry]?.[ratioKey]?.[industrySector] || 'N/A';
+
     const details = ratioLearnMoreDict[ratioKey] || {};
     const formattedValue = formatRatioValue(value, ratioKey);
 

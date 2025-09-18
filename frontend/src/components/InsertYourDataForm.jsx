@@ -182,6 +182,7 @@ const labels = {
 // --- MAIN COMPONENT ---
 
 function InsertYourDataForm() {
+  
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -256,7 +257,9 @@ function InsertYourDataForm() {
       const response = await axios.post("http://127.0.0.1:5000/api/predict", formData, {
         headers: { "Content-Type": "application/json" }
       });
+
       navigate('/results', { state: { results: response.data } });
+
     } catch (error) {
       console.error("Sending error:", error);
     }
@@ -271,7 +274,7 @@ function InsertYourDataForm() {
 
         <div css={formRowStyle}>
           <StyledLabel htmlFor="country">{currentLabels.country}</StyledLabel>
-          <StyledSelect id="country" name="country" autoComplete="off" value={formData.country} onChange={handleChange}>
+          <StyledSelect id="country" name="country" required autoComplete="off" value={formData.country} onChange={handleChange}>
             <option value="USA">United States</option>
             <option value="Italy">Italia</option>
           </StyledSelect>
@@ -279,7 +282,7 @@ function InsertYourDataForm() {
 
         <div css={formRowStyle}>
           <StyledLabel htmlFor="companyName">{currentLabels.companyName}</StyledLabel>
-          <StyledInput type="text" id="companyName" name="companyName" autoComplete="off" value={formData.companyName} onChange={handleChange} />
+          <StyledInput type="text" id="companyName" name="companyName" required autoComplete="off" value={formData.companyName} onChange={handleChange} />
         </div>
 
         <div css={formRowStyle}>
@@ -296,7 +299,7 @@ function InsertYourDataForm() {
 
         <div css={formRowStyle}>
           <StyledLabel htmlFor="fiscalYear">{currentLabels.fiscalYear}</StyledLabel>
-          <StyledSelect id="fiscalYear" name="fiscalYear" value={formData.fiscalYear} onChange={handleChange}>
+          <StyledSelect id="fiscalYear" name="fiscalYear" required value={formData.fiscalYear} onChange={handleChange}>
             {years.map(year => (
               <option key={year} value={year}>
                 {year}
@@ -315,7 +318,7 @@ function InsertYourDataForm() {
         {formData.isPubliclyListed && (
           <div css={formRowStyle}>
             <StyledLabel htmlFor="marketCapitalization">{currentLabels.marketCapitalization}</StyledLabel>
-            <StyledInput type="number" id="marketCapitalization" name="marketCapitalization" value={formData.marketCapitalization} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
+            <StyledInput type="number" id="marketCapitalization" name="marketCapitalization" required value={formData.marketCapitalization} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
           </div>
         )}
 
@@ -324,23 +327,23 @@ function InsertYourDataForm() {
         
         <div css={formRowStyle}>
           <StyledLabel htmlFor="revenue">{currentLabels.revenue}</StyledLabel>
-          <StyledInput type="number" id="revenue" name="revenue" value={formData.revenue} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
+          <StyledInput type="number" id="revenue" name="revenue" required value={formData.revenue} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
         </div>
         <div css={formRowStyle}>
           <StyledLabel htmlFor="ebit">{currentLabels.ebit}</StyledLabel>
-          <StyledInput type="number" id="ebit" name="ebit" value={formData.ebit} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
+          <StyledInput type="number" id="ebit" name="ebit" required value={formData.ebit} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
         </div>
         <div css={formRowStyle}>
           <StyledLabel htmlFor="netIncome">{currentLabels.netIncome}</StyledLabel>
-          <StyledInput type="number" id="netIncome" name="netIncome" value={formData.netIncome} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
+          <StyledInput type="number" id="netIncome" name="netIncome" required value={formData.netIncome} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
         </div>
         <div css={formRowStyle}>
           <StyledLabel htmlFor="depreciationAndAmortization">{currentLabels.depreciationAndAmortization}</StyledLabel>
-          <StyledInput type="number" id="depreciationAndAmortization" name="depreciationAndAmortization" value={formData.depreciationAndAmortization} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
+          <StyledInput type="number" id="depreciationAndAmortization" required name="depreciationAndAmortization" value={formData.depreciationAndAmortization} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
         </div>
         <div css={formRowStyle}>
           <StyledLabel htmlFor="interestExpense">{currentLabels.interestExpense}</StyledLabel>
-          <StyledInput type="number" id="interestExpense" name="interestExpense" value={formData.interestExpense} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
+          <StyledInput type="number" id="interestExpense" required name="interestExpense" value={formData.interestExpense} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
         </div>
 
         {/* --- SECTION 3: BALANCE SHEET --- */}
@@ -348,35 +351,35 @@ function InsertYourDataForm() {
         
         <div css={formRowStyle}>
           <StyledLabel htmlFor="totalCurrentAssets">{currentLabels.totalCurrentAssets}</StyledLabel>
-          <StyledInput type="number" id="totalCurrentAssets" name="totalCurrentAssets" value={formData.totalCurrentAssets} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
+          <StyledInput type="number" id="totalCurrentAssets" name="totalCurrentAssets" required value={formData.totalCurrentAssets} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
         </div>
         <div css={formRowStyle}>
           <StyledLabel htmlFor="inventories">{currentLabels.inventories}</StyledLabel>
-          <StyledInput type="number" id="inventories" name="inventories" value={formData.inventories} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
+          <StyledInput type="number" id="inventories" name="inventories" required value={formData.inventories} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
         </div>
         <div css={formRowStyle}>
           <StyledLabel htmlFor="totalNonCurrentAssets">{currentLabels.totalNonCurrentAssets}</StyledLabel>
-          <StyledInput type="number" id="totalNonCurrentAssets" name="totalNonCurrentAssets" value={formData.totalNonCurrentAssets} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
+          <StyledInput type="number" id="totalNonCurrentAssets" name="totalNonCurrentAssets" required value={formData.totalNonCurrentAssets} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
         </div>
         <div css={formRowStyle}>
           <StyledLabel htmlFor="tangibleFixedAssets">{currentLabels.tangibleFixedAssets}</StyledLabel>
-          <StyledInput type="number" id="tangibleFixedAssets" name="tangibleFixedAssets" value={formData.tangibleFixedAssets} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
+          <StyledInput type="number" id="tangibleFixedAssets" name="tangibleFixedAssets" required value={formData.tangibleFixedAssets} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
         </div>
         <div css={formRowStyle}>
           <StyledLabel htmlFor="totalCurrentLiabilities">{currentLabels.totalCurrentLiabilities}</StyledLabel>
-          <StyledInput type="number" id="totalCurrentLiabilities" name="totalCurrentLiabilities" value={formData.totalCurrentLiabilities} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
+          <StyledInput type="number" id="totalCurrentLiabilities" name="totalCurrentLiabilities" required value={formData.totalCurrentLiabilities} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
         </div>
         <div css={formRowStyle}>
           <StyledLabel htmlFor="totalNonCurrentLiabilities">{currentLabels.totalNonCurrentLiabilities}</StyledLabel>
-          <StyledInput type="number" id="totalNonCurrentLiabilities" name="totalNonCurrentLiabilities" value={formData.totalNonCurrentLiabilities} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
+          <StyledInput type="number" id="totalNonCurrentLiabilities" name="totalNonCurrentLiabilities" required value={formData.totalNonCurrentLiabilities} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
         </div>
         <div css={formRowStyle}>
           <StyledLabel htmlFor="totalEquity">{currentLabels.totalEquity}</StyledLabel>
-          <StyledInput type="number" id="totalEquity" name="totalEquity" value={formData.totalEquity} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
+          <StyledInput type="number" id="totalEquity" name="totalEquity" required value={formData.totalEquity} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
         </div>
         <div css={formRowStyle}>
           <StyledLabel htmlFor="retainedEarnings">{currentLabels.retainedEarnings}</StyledLabel>
-          <StyledInput type="number" id="retainedEarnings" name="retainedEarnings" value={formData.retainedEarnings} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
+          <StyledInput type="number" id="retainedEarnings" name="retainedEarnings" required value={formData.retainedEarnings} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
         </div>
 
         {/* --- SECTION 4: CASH FLOW --- */}
@@ -384,7 +387,7 @@ function InsertYourDataForm() {
 
         <div css={formRowStyle}>
           <StyledLabel htmlFor="operatingCashFlow">{currentLabels.operatingCashFlow}</StyledLabel>
-          <StyledInput type="number" id="operatingCashFlow" name="operatingCashFlow" value={formData.operatingCashFlow} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
+          <StyledInput type="number" id="operatingCashFlow" name="operatingCashFlow" required value={formData.operatingCashFlow} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
         </div>
 
         {/* --- SECTION 5: SUBMIT --- */}
