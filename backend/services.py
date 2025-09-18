@@ -4,6 +4,9 @@ import time
 import json
 import pymupdf4llm
 import google.generativeai as genai
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # --- AI CONFIGURATION ---
 

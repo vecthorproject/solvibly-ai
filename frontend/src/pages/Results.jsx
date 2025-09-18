@@ -1,10 +1,11 @@
 import styled from '@emotion/styled';
 import { useLocation } from 'react-router-dom';
+
 import RatioDisplay from '../components/RatioDisplay';
 import ModelDisplay from '../components/ModelDisplay';
 import usaIcon from '../graphics/Results/usa.svg';
 import italyIcon from '../graphics/Results/italy.svg';
-import { industrySectors, modelThresholds } from '../data/DictOb.js';
+import { industrySectors } from '../data/DictOb.js';
 
 // --- STYLED COMPONENTS ---
 
