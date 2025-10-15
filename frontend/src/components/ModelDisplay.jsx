@@ -8,7 +8,7 @@ const GenBlock = styled.div`
   border: 1px solid #f0f0f0;
   border-radius: 12px;
   margin: 1.5rem 2.5rem;
-  padding: 1.5rem;
+  padding: 1.5rem 2rem;
   background-color: white;
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 `;
@@ -313,7 +313,7 @@ function ModelDisplay({ title, value, modelKey }) {
             {isNumericValue && config && (
                 <>
                     <GaugeWrapper>
-                        <ValueDisplay position={markerPosition}>{(Math.trunc(value * 100) / 100).toFixed(2)}</ValueDisplay>
+                        <ValueDisplay position={markerPosition}>{value.toFixed(4)}</ValueDisplay>
 
                         <ColorBar stops={[stop1, stop2]} isBinary={isBinary} />
                         <ValueMarker position={markerPosition} />
@@ -345,8 +345,8 @@ function ModelDisplay({ title, value, modelKey }) {
                 </>
             )}
 
-            <SubLabelText>Risk Zone:  
-                <RiskZoneValue zone={riskZone || 'N/A'}>{riskZone || 'N/A'}</RiskZoneValue>
+            <SubLabelText>Risk Zone:
+              <RiskZoneValue zone={riskZone || 'N/A'}>{riskZone || 'N/A'}</RiskZoneValue>
             </SubLabelText>
 
             <LearnMoreBtn onClick={() => setExpandedSection(!expandedSection)}>

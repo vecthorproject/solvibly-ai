@@ -120,6 +120,15 @@ const formRowStyle = css`
   width: 100%;
 `;
 
+const OptionalBadgeForm = styled.span`
+  font-size: 0.99rem;
+  font-weight: 400;
+  font-style: italic;
+  color: #718096;
+  margin-left: 0.75rem;
+  vertical-align: middle;
+`;
+
 // --- LABEL & TITLE DICTIONARY ---
 
 const labels = {
@@ -149,6 +158,10 @@ const labels = {
     totalEquity: "Total Stockholders' Equity",
     retainedEarnings: 'Retained Earnings',
     operatingCashFlow: 'Operating Cash Flow',
+
+      title_dscr: 'Prospective Data (DSCR)',
+      dscrCashFlow: 'Expected Operating Cash Flow (6 months)',
+      dscrDebtService: 'Debt Service Due (6 months)'
   },
   Italy: {
     title_general: 'Dati Anagrafici e di Mercato',
@@ -176,6 +189,10 @@ const labels = {
     totalEquity: 'Patrimonio Netto',
     retainedEarnings: 'Utili non distribuiti / Riserve',
     operatingCashFlow: 'Flusso di cassa operativo',
+
+    title_dscr: 'Dati Previsionali (DSCR)',
+    dscrCashFlow: 'Flusso di cassa operativo atteso (6 mesi)',
+    dscrDebtService: 'Servizio del debito in scadenza (6 mesi)'
   }
 };
 
@@ -206,6 +223,8 @@ function InsertYourDataForm() {
     totalEquity: '',
     retainedEarnings: '',
     operatingCashFlow: '',
+    dscrCashFlow: '',
+    dscrDebtService: ''
   });
 
   const handleNumberInput = (e) => {
@@ -390,7 +409,22 @@ function InsertYourDataForm() {
           <StyledInput type="number" id="operatingCashFlow" name="operatingCashFlow" required value={formData.operatingCashFlow} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
         </div>
 
-        {/* --- SECTION 5: SUBMIT --- */}
+        {/* --- SECTION 5: DSCR --- */}
+        <StyledTitle>
+          {currentLabels.title_dscr}
+          <OptionalBadgeForm>*Optional</OptionalBadgeForm>
+        </StyledTitle>
+
+          <div css={formRowStyle}>
+            <StyledLabel htmlFor="dscrCashFlow"  style={{ fontSize: '15px' }}>{currentLabels.dscrCashFlow}</StyledLabel>
+            <StyledInput type="number" id="dscrCashFlow" name="dscrCashFlow" value={formData.dscrCashFlow} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
+          </div>
+          <div css={formRowStyle}>
+            <StyledLabel htmlFor="dscrDebtService" style={{ fontSize: '15px' }}>{currentLabels.dscrDebtService}</StyledLabel>
+            <StyledInput type="number" id="dscrDebtService" name="dscrDebtService" value={formData.dscrDebtService} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
+          </div>
+        
+        {/* --- SECTION 6: SUBMIT --- */}
         <ButtonWrapper>
           <StyledButton type="submit">
             Calculate Risk

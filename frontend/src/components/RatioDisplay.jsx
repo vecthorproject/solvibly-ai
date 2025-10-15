@@ -1,6 +1,6 @@
 import styled from '@emotion/styled';
 import { useState } from 'react';
-import { ratioLearnMoreDict, industryBenchmarks, keyRatioThresholds } from '../data/DictOb.js';
+import { ratioLearnMoreDict, normativeLearnMoreDict, industryBenchmarks, keyRatioThresholds, normativeThresholds } from '../data/DictOb.js';
 
 // --- STYLED COMPONENTS ---
 
@@ -8,7 +8,7 @@ const GenBlock = styled.div`
   border: 1px solid #f0f0f0;
   border-radius: 12px;
   margin: 1.5rem 2.5rem;
-  padding: 1.5rem;
+  padding: 1.5rem 2rem;
   background-color: white;
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 `;
@@ -46,6 +46,12 @@ const ColorBar = styled.div`
       good: '#B7F0D8'
     };
     const [stop1, stop2] = props.stops;
+
+    if (props.isBinary) {
+      const [color1, color2] = props.logic === 'lower' ? [colors.good, colors.critical] : [colors.critical, colors.good];
+      return `linear-gradient(90deg, ${color1} ${stop1}%, ${color2} ${stop1}%)`;
+    }
+    
     const [color1, color2, color3] = props.logic === 'lower' 
       ? [colors.good, colors.adequate, colors.critical]
       : [colors.critical, colors.adequate, colors.good];
@@ -195,7 +201,52 @@ const LegendDot = styled.div`
   background-color: ${props => props.color};
 `;
 
+const valueZoneColors = {
+    'Good': '#B7F0D8',
+    'Adequate': '#FAF3B6',
+    'Critical': '#F8B4B4',
+    'Crisis Zone': '#F8B4B4',
+    'Safe Zone': '#B7F0D8',
+    'N/A': '#E2E8F0'
+};
+
+const RiskValueZone = styled.strong`
+  background-color: ${props => valueZoneColors[props.zone] || '#E2E8F0'};
+  margin: 0.25rem;
+  padding: 0.16rem 0.28rem;
+  border: 1px solid white;
+  border-radius: 8px;
+  font-weight: 500;
+  font-family: "Sansation", sans-serif;
+`;
+
 // --- HELPER FUNCTIONS ---
+
+function classifyValue(value, config, ratioKey) {
+    if (typeof value !== 'number' || !config || !config.thresholds) return 'N/A';
+
+    if (ratioKey === 'dscr') {
+        return value >= 1.0 ? 'Safe Zone' : 'Crisis Zone';
+    }
+
+    const [t1, t2] = config.thresholds;
+    const lower = Math.min(t1, t2);
+    const upper = Math.max(t1, t2);
+
+    if (config.logic === 'higher') {
+        if (value < lower) return 'Critical';
+        if (value > upper) return 'Good';
+        return 'Adequate';
+    }
+
+    if (config.logic === 'lower') {
+        if (value > upper) return 'Critical';
+        if (value < lower) return 'Good';
+        return 'Adequate';
+    }
+
+    return 'N/A';
+}
 
 function calculateGaugePositions(value, min, max, threshold1, threshold2) {
   const toPercent = (num) => {
@@ -217,46 +268,56 @@ function calculateLabelPositions(stop1, stop2) {
     return [firstMidpoint, secondMidpoint, thirdMidpoint];
 }
 
-function formatRatioValue(value, ratioKey) {
-    if (typeof value !== 'number') return value;
+function formatRatioValue(value, ratioKey, includeSuffix = true, forGauge = false) {
+    if (typeof value !== 'number') return "N/A";
 
     const percentageRatios = ['roa', 'roe', 'roi', 'ros', 'debtToAssetsRatio'];
-    
-    const truncatedValue = Math.trunc(value * 100) / 100;
 
     if (percentageRatios.includes(ratioKey)) {
-        return `${truncatedValue.toFixed(2)} (${(truncatedValue * 100).toFixed(0)}%)`;
+        const decimalValue = value.toFixed(4);        
+        const percentValue = (value * 100).toFixed(2); 
+        return forGauge ? decimalValue : `${decimalValue} (${percentValue}%)`;
     }
-    return `${truncatedValue.toFixed(2)}x`;
+
+    const displayValue = value.toFixed(4); 
+    return includeSuffix ? `${displayValue}x` : displayValue;
 }
+
 
 // --- MAIN COMPONENT ---
 
-function RatioDisplay({ title, value, ratioKey, country, industrySector }) {
+function RatioDisplay({ title, value, ratioKey, country, industrySector, dataType='ratio' }) {
 
     const [expandedSection, setExpandedSection] = useState(false);
 
-    const config = keyRatioThresholds[ratioKey];
-    const isNumericValue = typeof value === 'number';
+    const isNormative = dataType === 'normative';
+    const config = isNormative ? normativeThresholds[ratioKey] : keyRatioThresholds[ratioKey];
+    const details = isNormative ? normativeLearnMoreDict[ratioKey] : ratioLearnMoreDict[ratioKey];
     
+    const isBinary = config?.labels && config.labels[1] === '';
+    
+    const isNumericValue = typeof value === 'number';
     const normalizedCountry = country?.toLowerCase() === 'italy' ? 'Italy' : country?.toLowerCase() === 'usa' ? 'USA' : country;
     const benchmark = industryBenchmarks[normalizedCountry]?.[ratioKey]?.[industrySector] || 'N/A';
-
-    const details = ratioLearnMoreDict[ratioKey] || {};
     const formattedValue = formatRatioValue(value, ratioKey);
 
-    let markerPosition, stop1, stop2, labelPositions;
+    let markerPosition, stop1, stop2, labelPositions, valueZone;
     let t1, t2; 
     if (isNumericValue && config) {
         const [min, max] = config.scale;
         [t1, t2] = config.thresholds;
         [markerPosition, stop1, stop2] = calculateGaugePositions(value, min, max, t1, t2);
-        labelPositions = calculateLabelPositions(Math.min(stop1, stop2), Math.max(stop1, stop2));
+        
+        if (!isBinary) {
+            labelPositions = calculateLabelPositions(Math.min(stop1, stop2), Math.max(stop1, stop2));
+        }
+
+        valueZone = classifyValue(value, config, ratioKey);
     }
-    
-    const gaugeLabels = config?.logic === 'lower' 
-      ? ['Good', 'Adequate', 'Critical'] 
-      : ['Critical', 'Adequate', 'Good'];
+
+    const gaugeLabels = config?.labels && isBinary
+      ? (config.logic === 'lower' ? [config.labels[2], config.labels[0]] : [config.labels[0], config.labels[2]])
+      : (config?.logic === 'lower' ? ['Good', 'Adequate', 'Critical'] : ['Critical', 'Adequate', 'Good']);
       
     const thresholdLabels = config?.logic === 'lower' ? [t2, t1] : [t1, t2];
 
@@ -264,70 +325,77 @@ function RatioDisplay({ title, value, ratioKey, country, industrySector }) {
         <GenBlock>
             <RatioBlock>
                 <StyledTitle>{title}</StyledTitle>
-                <StyledTitle>{formattedValue}</StyledTitle>
+                <StyledTitle>{formatRatioValue(value, ratioKey, true)}</StyledTitle>
             </RatioBlock>
 
             {isNumericValue && config && (
                 <>
                     <GaugeWrapper>
-                        <ValueDisplay position={markerPosition}>{(Math.trunc(value * 100) / 100).toFixed(2)}</ValueDisplay>
+                      <ValueDisplay position={markerPosition}>
+                        {formatRatioValue(value, ratioKey, false, true)}
+                      </ValueDisplay>
 
-                        <ColorBar stops={[Math.min(stop1, stop2), Math.max(stop1, stop2)]} logic={config.logic} />
+                        <ColorBar stops={[Math.min(stop1, stop2), Math.max(stop1, stop2)]} logic={config.logic} isBinary={isBinary} />
                         <ValueMarker position={markerPosition} />
                         
                         <LabelsWrapper>
-                            <GaugeLabel position={labelPositions[0]}>{gaugeLabels[0]}</GaugeLabel>
-                            <GaugeLabel position={labelPositions[1]}>{gaugeLabels[1]}</GaugeLabel>
-                            <GaugeLabel position={labelPositions[2]}>{gaugeLabels[2]}</GaugeLabel>
+                            {isBinary ? (
+                                <>
+                                    <GaugeLabel position={stop1 / 2}>{gaugeLabels[0]}</GaugeLabel>
+                                    <GaugeLabel position={stop1 + (100 - stop1) / 2}>{gaugeLabels[1]}</GaugeLabel>
+                                </>
+                            ) : (
+                                <>
+                                    <GaugeLabel position={labelPositions[0]}>{gaugeLabels[0]}</GaugeLabel>
+                                    <GaugeLabel position={labelPositions[1]}>{gaugeLabels[1]}</GaugeLabel>
+                                    <GaugeLabel position={labelPositions[2]}>{gaugeLabels[2]}</GaugeLabel>
+                                </>
+                            )}
                         </LabelsWrapper>
                         
                         <ThresholdsWrapper>
                            <ThresholdLabel position={Math.min(stop1, stop2)}>{thresholdLabels[0]}</ThresholdLabel>
-                           <ThresholdLabel position={Math.max(stop1, stop2)}>{thresholdLabels[1]}</ThresholdLabel>
+                           {!isBinary && <ThresholdLabel position={Math.max(stop1, stop2)}>{thresholdLabels[1]}</ThresholdLabel>}
                         </ThresholdsWrapper>
                     </GaugeWrapper>
                 </>
             )}
 
-
-            <SubLabelText>
-              Industry Standard:  
-              <strong style={{ margin:'0', marginLeft: '0.2rem', fontWeight:'500', fontSize:"0.95rem" }}>
-                {typeof benchmark === 'number'
-                  ? formatRatioValue(benchmark, ratioKey)
-                  : benchmark
-                }
-              </strong>
+            <SubLabelText style={{ margin:'3rem 0 1rem 0' }}>Risk Zone:
+              <RiskValueZone zone={valueZone}>{valueZone || 'N/A'}</RiskValueZone>
             </SubLabelText>
+
+            {isNormative ? (
+                <SubLabelText style={{ margin:'1rem 0 1rem 0' }}>Normative Reference Value: <strong style={{ margin:'0', fontWeight:'500', fontSize:"0.95rem" }}>&gt; 1.0x</strong></SubLabelText>
+            ) : (
+                <SubLabelText style={{ margin:'1rem 0 1rem 0' }}>
+                  Industry Standard: 
+                  <strong style={{ margin:'0', marginLeft: '0.2rem', fontWeight:'500', fontSize:"0.95rem" }}>
+                    {typeof benchmark === 'number'
+                      ? ['roa','roe','roi','ros','debtToAssetsRatio'].includes(ratioKey) 
+                        ? `${benchmark.toFixed(2)} (${(benchmark*100).toFixed(0)}%)`
+                        : `${benchmark.toFixed(2)}x`
+                      : benchmark
+                    }
+                  </strong>
+                </SubLabelText>
+            )}
 
             <LearnMoreBtn onClick={() => setExpandedSection(!expandedSection)}>
                 {expandedSection ? 'Show Less' : 'Learn More'}
             </LearnMoreBtn>
             
-            { expandedSection && (
-              <DetailsWrapper>
-                <p>
-                  <strong>Significance:</strong> {details.significance}
-                </p>
-                <p>
-                  <strong>Notes:</strong> {details.notes}
-                </p>
-              </DetailsWrapper>
+            { expandedSection && details && (
+                <DetailsWrapper>
+                    <p><strong>Significance:</strong> {details.significance}</p>
+                    <p><strong>Notes:</strong> {details.notes}</p>
+                </DetailsWrapper>
             )}
 
             <LegendWrapper>
-                <LegendItem>
-                    <LegendDot color="#F8B4B4" />
-                    <span>Critical</span>
-                </LegendItem>
-                <LegendItem>
-                    <LegendDot color="#FAF3B6" />
-                    <span>Adequate</span>
-                </LegendItem>
-                <LegendItem>
-                    <LegendDot color="#B7F0D8" />
-                    <span>Good</span>
-                </LegendItem>
+                <LegendItem><LegendDot color="#F8B4B4" /><span>{isBinary ? gaugeLabels[0] : 'Critical'}</span></LegendItem>
+                {!isBinary && <LegendItem><LegendDot color="#FAF3B6" /><span>Adequate</span></LegendItem>}
+                <LegendItem><LegendDot color="#B7F0D8" /><span>{isBinary ? gaugeLabels[1] : 'Good'}</span></LegendItem>
             </LegendWrapper>
         </GenBlock>
     )

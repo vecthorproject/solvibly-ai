@@ -92,6 +92,13 @@ export const ratioLearnMoreDict = {
   }
 };
 
+export const normativeLearnMoreDict = {
+  dscr: {
+    significance: `The Debt Service Coverage Ratio (DSCR) is a key forward-looking indicator required by the Italian Corporate Crisis Code. It measures the prospective ability of a company to cover its upcoming debt service (principal + interest) with its expected operating cash flow.`,
+    notes: `A value below 1.0 is a primary alert signal, indicating that the company is not expected to generate enough cash to meet its financial obligations, suggesting a high risk of crisis. A value equal to 1.0 means the company can exactly cover its debt service, which is considered the minimum safe threshold.`
+  },
+};
+
 export const modelLearnMoreDict = {
   altmanZScore: {
     significance: `The pioneering statistical model for predicting corporate bankruptcy, developed by Edward Altman in 1968. It combines five key financial ratios into a single score to classify a company's financial health into distinct zones.`,
@@ -238,7 +245,7 @@ export const keyRatioThresholds = {
   ros: {
     thresholds: [0.05, 0.15], 
     scale: [0, 0.30],       
-    midpoint: 10,
+    midpoint: 0.10,
     logic: 'higher'
   },
   assetTurnover: {
@@ -246,6 +253,17 @@ export const keyRatioThresholds = {
     scale: [0, 3],
     midpoint: 1.0,
     logic: 'higher'
+  }
+};
+
+// --- THRESHOLDS FOR DSCR ---
+
+export const normativeThresholds = {
+  dscr: {
+    thresholds: [1.0, 1.0],
+    scale: [0, 2],
+    logic: 'higher',
+    labels: ['Crisis Zone', '', 'Safe Zone'] 
   }
 };
 

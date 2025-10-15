@@ -3,7 +3,8 @@ import tempfile
 import time
 import json
 import pymupdf4llm
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -11,7 +12,6 @@ load_dotenv()
 # --- AI CONFIGURATION ---
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-genai.configure(api_key=GEMINI_API_KEY)
 
 # --- MAIN LOGIC ---
 
@@ -43,18 +43,21 @@ def extract_data_with_llm(md_text, country):
     """Sends the text to the Gemini API to extract financial data."""
     prompt = _build_extraction_prompt(country)
     try:
-        print("--- CALLING GEMINI API FOR DATA EXTRACTION ---")
-        model = genai.GenerativeModel('gemini-1.5-flash')
-        full_prompt = prompt + "\n\nMARKDOWN_TEXT:\n" + md_text
-        
-        response = model.generate_content(
-            full_prompt,
-            generation_config=genai.types.GenerationConfig(response_mime_type="application/json")
+        print("--- CALLING GENAI API FOR DATA EXTRACTION ---")
+
+        client = genai.Client(api_key=GEMINI_API_KEY)
+        model_id = "gemini-2.5-flash"
+
+        response = client.models.generate_content(
+            model=model_id,
+            contents=prompt + "\n\nMARKDOWN_TEXT:\n" + md_text,
+            config=types.GenerateContentConfig(response_mime_type="application/json")
         )
-        
+
         extracted_data = json.loads(response.text)
         print("--- AI RESPONSE RECEIVED ---")
         return extracted_data
+
     except Exception as e:
         raise ValueError(f"AI data extraction failed: {e}")
     

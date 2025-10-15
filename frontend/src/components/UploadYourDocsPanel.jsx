@@ -292,6 +292,53 @@ const ProgressBarFill = styled.div`
   transition: width 0.4s ease-in-out;
 `;
 
+const OptionalSectionLabel = styled.h4`
+  font-family: system-ui, sans-serif;
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: #4A5568;
+  letter-spacing: 0.05em;
+  width: 100%;
+  border-top: 1px solid #e2e8f0;
+  padding-top: 1.5rem;
+`;
+
+const StyledOptionalInput = styled.input`
+  background-color: white;
+  color: black;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 0.6rem 1rem;
+  width: 220px;
+  box-sizing: border-box;
+  font-family: system-ui, sans-serif;
+  font-size: 0.9rem;
+  margin: 0 0.25rem 0.5rem 0.25rem;
+
+  &:focus {
+    outline: none;
+    border-color: #15a497;
+  }
+
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  &[type="number"] {
+    -moz-appearance: textfield;
+  }
+`;
+
+const OptionalBadgePanel = styled.span`
+  font-size: 0.79rem;
+  font-weight: 400;
+  font-style: italic;
+  color: #718096;
+  margin-left: 0.75rem;
+  vertical-align: middle;
+`;
+
 // --- DATA FOR SELECTIONS ---
 
 const countryChoice = [{value: "usa", label: "USA"}, {value: "italy", label: "Italia"}]
@@ -305,7 +352,10 @@ function UploadYourDocsPanel() {
     const [selectedCountry, setSelectedCountry] = useState("usa");
     const [selectedType, setSelectedType] = useState("private");
     const [selectedSector, setSelectedSector] = useState("");
-    
+
+    const [dscrCashFlow, setDscrCashFlow] = useState("");
+    const [dscrDebtService, setDscrDebtService] = useState("");
+
     const [uploadError, setUploadError] = useState(null);
     const [errorVisible, setErrorVisible] = useState(false);
     const [uploadedFile, setUploadedFile] = useState(null);
@@ -364,6 +414,27 @@ function UploadYourDocsPanel() {
       maxSize: 10485760, 
     });
 
+
+    const handleNumberInput = (e) => {
+    if (["e", "E", "+", "-"].includes(e.key)) {
+      e.preventDefault();
+    }
+    if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+      e.preventDefault();
+    }
+  };
+
+    const handlePaste = (e) => {
+      const paste = e.clipboardData.getData('text');
+      if (!/^\d*\.?\d*$/.test(paste)) {
+        e.preventDefault();
+      }
+    };
+
+    const handleWheel = (e) => {
+      e.target.blur();
+    };
+
     const handleUpload = async () => {
       if (!uploadedFile || !selectedSector) {
         setUploadError("Please select the Country of Operation, choose a Company Type, and upload a PDF file to continue.");
@@ -375,6 +446,8 @@ function UploadYourDocsPanel() {
       formData.append('country', selectedCountry);
       formData.append('companyType', selectedType);
       formData.append('industrySector', selectedSector);
+      formData.append('dscrCashFlow', dscrCashFlow);
+      formData.append('dscrDebtService', dscrDebtService);
 
       setIsLoading(true);
       setUploadProgress(0);
@@ -486,6 +559,30 @@ function UploadYourDocsPanel() {
               </SelectorGroup>
 
             </SelectorsContainer>
+
+            <OptionalSectionLabel>PROSPECTIVE DATA (DSCR)<OptionalBadgePanel>*Optional</OptionalBadgePanel></OptionalSectionLabel>
+            <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
+              <StyledOptionalInput 
+                type="number" 
+                name="dscrCashFlow" 
+                placeholder="Expected Cash Flow (6m)"
+                value={dscrCashFlow}
+                onChange={(e) => setDscrCashFlow(e.target.value)}
+                onKeyDown={handleNumberInput}
+                onPaste={handlePaste}
+                onWheel={handleWheel}
+              />
+              <StyledOptionalInput 
+                type="number" 
+                name="dscrDebtService" 
+                placeholder="Debt Service Due (6m)"
+                value={dscrDebtService}
+                onChange={(e) => setDscrDebtService(e.target.value)}
+                onKeyDown={handleNumberInput}
+                onPaste={handlePaste}
+                onWheel={handleWheel}
+              />
+            </div>
 
             <UploadDocContainer {...getRootProps()} isDragActive={isDragActive}>
               <input {...getInputProps()} />

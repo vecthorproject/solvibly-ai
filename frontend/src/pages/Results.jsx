@@ -177,6 +177,20 @@ function Results() {
                 />
             ))}
 
+            {resultsData.dscr && resultsData.dscr !== 'N/A' && (
+              <>
+                <SectionTitle>Regulatory Alert Indicators (DSCR)</SectionTitle>
+                <RatioDisplay
+                    title="Debt Service Coverage Ratio (DSCR)"
+                    value={resultsData.dscr}
+                    ratioKey="dscr"
+                    dataType="normative"
+                    country={country}
+                    industrySector={industrySectorKey}
+                />
+              </>
+            )}
+
             <SectionTitle>Financial Distress Models</SectionTitle>
             {pageConfig.financialDistressModels.map(config => (
                 <ModelDisplay

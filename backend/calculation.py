@@ -2,6 +2,13 @@ import math
 
 # --- CALCULATION FUNCTIONS ---
 
+def calculate_dscr(financials):
+    try:
+        dscr = financials["dscrCashFlow"] / financials["dscrDebtService"]
+        return round(dscr, 4)
+    except (ZeroDivisionError, KeyError):
+        return 'N/A'
+
 def calculate_altman_zscore(financials):
     try:
         a = financials["workingCapital"] / financials["totalAssets"]
