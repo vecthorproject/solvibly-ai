@@ -1,8 +1,8 @@
 import styled from '@emotion/styled';
 import { useLocation } from 'react-router-dom';
-
 import RatioDisplay from '../components/RatioDisplay';
 import ModelDisplay from '../components/ModelDisplay';
+import EsgDisplay from '../components/ESGDisplay.jsx';
 import usaIcon from '../graphics/Results/usa.svg';
 import italyIcon from '../graphics/Results/italy.svg';
 import { industrySectors } from '../data/DictOb.js';
@@ -69,7 +69,7 @@ const RiskScoreValue = styled.span`
      0.8px -0.8px 0 #718096,
     -0.8px  0.8px 0 #718096,
      0.8px  0.8px 0 #718096;
-  background-color: #B7F0D8; /* Verde per 'Good' - da rendere dinamico */
+  background-color: #B7F0D8;
   padding: 5px 15px;
   border-radius: 20px;
   margin-left: 10px;
@@ -96,7 +96,7 @@ const pageConfig = {
     { key: 'roe', title: 'Return on Equity (ROE)' },
     { key: 'roi', title: 'Return on Investment (ROI)' },
     { key: 'ros', title: 'Return on Sales (ROS)' },
-    { key: 'assetTurnover', title: 'Asset Turnover' },
+    { key: 'assetTurnover', title: 'Asset Turnover' }
   ],
   financialDistressModels: [
     { key: 'altmanZScore', title: 'Altman Z-Score' },
@@ -104,6 +104,8 @@ const pageConfig = {
     { key: 'tafflerTScore', title: 'Taffler T-Score' },
     { key: 'fulmerHFactor', title: 'Fulmer H-Factor' },
     { key: 'groverGScore', title: 'Grover G-Score' },
+    { key: 'zmijewskiXScore', title: 'Zmijewski X-Score'},
+    { key: 'ohlsonOScore', title: 'Ohlson O-Score'}
   ]
 };
 
@@ -119,89 +121,121 @@ function getSectorShortLabel(country, sectorKey) {
 }
 
 function getRiskInfo(value, modelKey) {
-    return { zone: 'Good', color: '#B7F0D8' }; // Placeholder
+  return { zone: 'Good', color: '#B7F0D8' }; // Placeholder
 }
 
 // --- MAIN COMPONENT ---
 
 function Results() {
-    const location = useLocation();
-    const resultsData = location.state?.results || {};
+  const location = useLocation();
+  const resultsData = location.state?.results || {};
 
-    const companyName = resultsData.companyName ?? "N/A";
-    const fiscalYear = resultsData.fiscalYear ?? "N/A";
-    const country = resultsData.country ?? "USA";
-    const industrySectorKey = resultsData.industrySector || null; 
-    const countryKey =
-      country?.toLowerCase() === 'italy' ? 'Italy' :
-      country?.toLowerCase() === 'usa'   ? 'USA'   :
-      country;
-    const industrySectorLabel = getSectorShortLabel(countryKey, industrySectorKey);
+  const companyName = resultsData.companyName ?? "N/A";
+  const fiscalYear = resultsData.fiscalYear ?? "N/A";
+  const country = resultsData.country ?? "USA";
+  const industrySectorKey = resultsData.industrySector || null; 
+  const countryKey =
+    country?.toLowerCase() === 'italy' ? 'Italy' :
+    country?.toLowerCase() === 'usa'   ? 'USA'   :
+    country;
+  const industrySectorLabel = getSectorShortLabel(countryKey, industrySectorKey);
 
-    const { zone: riskScore, color: riskColor } = getRiskInfo(resultsData.altmanZScore, 'altmanZScore'); //Placeholder
+  const { zone: riskScore, color: riskColor } = getRiskInfo(resultsData.altmanZScore, 'altmanZScore'); // Placeholder
 
-    return(
-        <PageWrapper>
-            <ResultsTopSection>
-                <InfoBlock>
-                    <StyledTitleCompany>
-                        <img
-                            src={country === "USA" ? usaIcon : italyIcon}
-                            alt={country}
-                            style={{ width: '1.8rem', height: '1.8rem', marginTop:"0.5rem" }}
-                        />
-                        <span style={{ fontWeight: '400', marginRight: '0.2rem', marginLeft: '0.4rem' }}>|</span>
-                        {companyName}
-                    </StyledTitleCompany>
-                    <StyledSubtitle>
-                        {industrySectorLabel} <span style={{display: 'inline', margin: '0 0.2rem 0 0.2rem' }}>-</span> {fiscalYear}
-                    </StyledSubtitle>
-                </InfoBlock>
-                <RiskBlock>
-                    <RiskScoreLabel>
-                        Risk Score: 
-                        <RiskScoreValue bgColor={riskColor}>{riskScore}</RiskScoreValue>
-                    </RiskScoreLabel>
-                </RiskBlock>
-            </ResultsTopSection>
+  // --- ESG visibility/source infer ---
+  const esgSource =
+    resultsData.esgSource ||
+    (resultsData.esgRating
+      ? 'rating'
+      : (resultsData.esgScore_E != null || resultsData.esgScore_S != null || resultsData.esgScore_G != null)
+        ? 'sliders'
+        : null);
 
-            <SectionTitle>Key Ratios</SectionTitle>
-            {pageConfig.keyRatios.map(config => (
-                <RatioDisplay
-                    key={config.key}
-                    title={config.title}
-                    value={resultsData[config.key]}
-                    ratioKey={config.key}
-                    country={country}
-                    industrySector={industrySectorKey}
-                />
-            ))}
+  const showESG =
+    (esgSource === 'rating'  && (resultsData.esgRating || resultsData.esgOverallScore != null)) ||
+    (esgSource === 'sliders' && (resultsData.esgScore_E != null || resultsData.esgScore_S != null || resultsData.esgScore_G != null || resultsData.esgOverallScore != null));
 
-            {resultsData.dscr && resultsData.dscr !== 'N/A' && (
-              <>
-                <SectionTitle>Regulatory Alert Indicators (DSCR)</SectionTitle>
-                <RatioDisplay
-                    title="Debt Service Coverage Ratio (DSCR)"
-                    value={resultsData.dscr}
-                    ratioKey="dscr"
-                    dataType="normative"
-                    country={country}
-                    industrySector={industrySectorKey}
-                />
-              </>
-            )}
+  return(
+    <PageWrapper>
+      <ResultsTopSection>
+        <InfoBlock>
+          <StyledTitleCompany>
+            <img
+              src={country === "USA" ? usaIcon : italyIcon}
+              alt={country}
+              style={{ width: '1.8rem', height: '1.8rem', marginTop:"0.5rem" }}
+            />
+            <span style={{ fontWeight: '400', marginRight: '0.2rem', marginLeft: '0.4rem' }}>|</span>
+            {companyName}
+          </StyledTitleCompany>
+          <StyledSubtitle>
+            {industrySectorLabel} <span style={{display: 'inline', margin: '0 0.2rem 0 0.2rem' }}>-</span> {fiscalYear}
+          </StyledSubtitle>
+        </InfoBlock>
+        <RiskBlock>
+          <RiskScoreLabel>
+            Risk Score: 
+            <RiskScoreValue bgColor={riskColor}>{riskScore}</RiskScoreValue>
+          </RiskScoreLabel>
+        </RiskBlock>
+      </ResultsTopSection>
 
-            <SectionTitle>Financial Distress Models</SectionTitle>
-            {pageConfig.financialDistressModels.map(config => (
-                <ModelDisplay
-                    key={config.key}
-                    title={config.title}
-                    value={resultsData[config.key]}
-                    modelKey={config.key}
-                />
-            ))}
-        </PageWrapper>
-    )
+      <SectionTitle>Key Ratios</SectionTitle>
+      {pageConfig.keyRatios.map(config => (
+        <RatioDisplay
+          key={config.key}
+          title={config.title}
+          value={resultsData[config.key]}
+          ratioKey={config.key}
+          country={country}
+          industrySector={industrySectorKey}
+        />
+      ))}
+
+      {resultsData.dscr && resultsData.dscr !== 'N/A' && (
+        <>
+          <SectionTitle>Regulatory Alert Indicators (DSCR)</SectionTitle>
+          <RatioDisplay
+            title="Debt Service Coverage Ratio (DSCR)"
+            value={resultsData.dscr}
+            ratioKey="dscr"
+            dataType="normative"
+            country={country}
+            industrySector={industrySectorKey}
+          />
+        </>
+      )}
+
+      <SectionTitle>Financial Distress Models</SectionTitle>
+      {pageConfig.financialDistressModels
+        .filter(config => {
+          const val = resultsData[config.key];
+          return val !== undefined && val !== null && val !== 'N/A';
+        })
+        .map(config => (
+          <ModelDisplay
+            key={config.key}
+            title={config.title}
+            value={resultsData[config.key]}
+            modelKey={config.key}
+          />
+      ))}
+
+      {showESG && (
+        <>
+          <SectionTitle>Sustainability (ESG)</SectionTitle>
+          <EsgDisplay
+            source={esgSource}
+            rating={resultsData.esgRating}
+            scoreE={resultsData.esgScore_E}
+            scoreS={resultsData.esgScore_S}
+            scoreG={resultsData.esgScore_G}
+            overall={resultsData.esgOverallScore}
+          />
+        </>
+      )}
+    </PageWrapper>
+  )
 }
 
 export default Results;

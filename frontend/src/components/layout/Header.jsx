@@ -6,6 +6,7 @@ import solviblyLogo from '../../graphics/Header/Logo/logosvg.svg';
 
 const HeaderContainer = styled.header`
   position: relative;
+  z-index: 1000;
   height: 12vh;
   padding: 0 2vw;
   background-color: white;
@@ -56,13 +57,14 @@ const LogoImage = styled.img`
 
 const TitleContainer = styled.div`
   position: absolute;
-  left: 12%;
+  /* FIX anti micro-shift: usa il viewport width al posto della % del contenitore */
+  left: 12vw;                /* <— era 12% */
   transform: translateX(-50%);
   white-space: nowrap;
 
   /* On small screens, switch to centered block flow */
   @media (max-width: 1300px) {
-    left: 50%;               
+    left: 50vw;              /* <— era 50% */
     transform: translateX(-50%);
   }
 `;

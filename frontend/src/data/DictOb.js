@@ -119,6 +119,14 @@ export const modelLearnMoreDict = {
   groverGScore: {
     significance: `A more recent and simpler model that uses only three financial ratios to predict bankruptcy. Despite its simplicity, it has shown very high predictive accuracy, often outperforming older models.`,
     notes: `The model provides a score where values below -0.02 are classified as financially distressed. It's a powerful example of a parsimonious model that achieves high performance with fewer variables.`
+  },
+  zmijewskiXScore: {
+    significance: `Developed by Mark Zmijewski in 1984, this model uses a probit analysis to estimate the probability of financial distress. It is noted for its critique of the 'sample selection bias' of previous models.`,
+    notes: `The model is praised for its simplicity, using only three common financial ratios (ROA, Debt Ratio, and Current Ratio). A higher score indicates a higher probability of default.` 
+  },
+  ohlsonOScore: {
+    significance: `Developed by James Ohlson in 1980, this statistical model estimates the likelihood of corporate bankruptcy using a probit regression. It integrates leverage, liquidity, profitability, and income trend indicators into a single predictive score.`,
+    notes: `The model combines nine key variables, including total assets (log size), debt ratio, working capital, cash flow, and recent earnings changes. Scores below -1.32 indicate low risk, between -1.32 and 0.5 represent a moderate zone, and above 0.5 signal high bankruptcy risk.`
   }
 };
 
@@ -299,5 +307,17 @@ export const modelThresholds = {
     scale: [-0.5, 0.5],
     labels: ['Distress Zone', 'Grey Zone', 'Safe Zone'],
     logic: 'higher'
+  },
+  zmijewskiXScore: {
+    thresholds: [0, 0], // cut-off 0
+    scale: [-5, 5],
+    labels: ['Non-Distressed', '', 'Distressed'], // binary
+    logic: 'lower'
+  },
+    ohlsonOScore: {
+    thresholds: [-1.32, 0.5],
+    scale: [-5, 3],
+    labels: ['Low Risk', 'Moderate Risk', 'High Risk'],
+    logic: 'lower'
   }
 };

@@ -84,11 +84,19 @@ const ValueDisplay = styled.span`
   font-size: 0.85rem;
   font-family: system-ui, sans-serif;
   color: #2D3748;
-  left: ${props => props.position}%;
+
+  left: ${props => {
+    const min = 2;
+    const max = 98;
+    const safePos = Math.max(min, Math.min(max, props.position));
+    return `${safePos}%`;
+  }};
+  
   transform: translateX(-50%);
   white-space: nowrap;
   opacity: 0.97;
 `;
+
 
 const LabelsWrapper = styled.div`
   position: absolute;
@@ -213,7 +221,7 @@ const valueZoneColors = {
 const RiskValueZone = styled.strong`
   background-color: ${props => valueZoneColors[props.zone] || '#E2E8F0'};
   margin: 0.25rem;
-  padding: 0.16rem 0.28rem;
+  padding: 0.15rem 0.30rem;
   border: 1px solid white;
   border-radius: 8px;
   font-weight: 500;
@@ -393,9 +401,30 @@ function RatioDisplay({ title, value, ratioKey, country, industrySector, dataTyp
             )}
 
             <LegendWrapper>
-                <LegendItem><LegendDot color="#F8B4B4" /><span>{isBinary ? gaugeLabels[0] : 'Critical'}</span></LegendItem>
-                {!isBinary && <LegendItem><LegendDot color="#FAF3B6" /><span>Adequate</span></LegendItem>}
-                <LegendItem><LegendDot color="#B7F0D8" /><span>{isBinary ? gaugeLabels[1] : 'Good'}</span></LegendItem>
+              {(() => {
+                const labelsNormal = isBinary 
+                  ? [gaugeLabels[0], gaugeLabels[1]] 
+                  : ['Critical', 'Adequate', 'Good'];
+                const labelsLower = isBinary
+                  ? [gaugeLabels[1], gaugeLabels[0]]
+                  : ['Good', 'Adequate', 'Critical'];
+                const colorsNormal = isBinary
+                  ? ['#F8B4B4', '#B7F0D8']
+                  : ['#F8B4B4', '#FAF3B6', '#B7F0D8'];
+                const colorsLower = isBinary
+                  ? ['#B7F0D8', '#F8B4B4']
+                  : ['#B7F0D8', '#FAF3B6', '#F8B4B4'];
+
+                const labels = config.logic === 'lower' ? labelsLower : labelsNormal;
+                const colors = config.logic === 'lower' ? colorsLower : colorsNormal;
+
+                return labels.map((label, i) => (
+                  <LegendItem key={i}>
+                    <LegendDot color={colors[i]} />
+                    <span>{label}</span>
+                  </LegendItem>
+                ));
+              })()}
             </LegendWrapper>
         </GenBlock>
     )

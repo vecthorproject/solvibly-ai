@@ -1,10 +1,11 @@
 import styled from '@emotion/styled';
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import { useDropzone } from 'react-dropzone';
 import axios from 'axios';
-
-import { industrySectors } from '../data/DictOb.js'; 
+import { industrySectors } from '../data/DictOb.js';
+import PopupPromptModal from './PopupPromptModal.jsx';
+import EsgInput from './ESGInput.jsx';
 import uploadDocsIcon from '../graphics/UploadDocs/uploadfindocsicon.svg';
 import pdfIcon from '../graphics/UploadDocs/pdficon.svg';
 import sendIcon from '../graphics/UploadDocs/sendicon.svg';
@@ -162,7 +163,7 @@ const StyledSubText = styled.p`
   font-family: system-ui, sans-serif;
   font-size: 0.8rem;
   margin-top: 1.6rem;
-  text-wrap: nowrap;
+  white-space: nowrap;
 `;
 
 const DocsIconsContainer = styled.div`
@@ -231,6 +232,7 @@ const StyledButton = styled.button`
 
   &:hover {
     background-color: #118a7e;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
   }
   
   &:disabled {
@@ -258,7 +260,7 @@ const FilePreview = styled.div`
   font-size: 0.9rem;
   color: #2D3748;
   font-weight: 500;
-  text-wrap: nowrap;
+  white-space: nowrap;
   margin-bottom: 1.1rem;
 `;
 
@@ -339,7 +341,7 @@ const OptionalBadgePanel = styled.span`
   vertical-align: middle;
 `;
 
-// --- DATA FOR SELECTIONS ---
+// --- DATA PER LE SELEZIONI ---
 
 const countryChoice = [{value: "usa", label: "USA"}, {value: "italy", label: "Italia"}]
 const companyType = [{value: "public", label: "Public"}, {value: "private", label: "Private"}]
@@ -347,75 +349,101 @@ const companyType = [{value: "public", label: "Public"}, {value: "private", labe
 // --- MAIN COMPONENT ---
 
 function UploadYourDocsPanel() {
-    const navigate = useNavigate();
-    
-    const [selectedCountry, setSelectedCountry] = useState("usa");
-    const [selectedType, setSelectedType] = useState("private");
-    const [selectedSector, setSelectedSector] = useState("");
 
-    const [dscrCashFlow, setDscrCashFlow] = useState("");
-    const [dscrDebtService, setDscrDebtService] = useState("");
+  const isMountedRef = useRef(true);
+  const cancelSource = useRef(null);
 
-    const [uploadError, setUploadError] = useState(null);
-    const [errorVisible, setErrorVisible] = useState(false);
-    const [uploadedFile, setUploadedFile] = useState(null);
-    
-    const [isLoading, setIsLoading] = useState(false);
-    const [uploadProgress, setUploadProgress] = useState(0);
-    const [isAnalyzing, setIsAnalyzing] = useState(false);
-
-    const intervalRef = useRef(null);
-
-    useEffect(() => {
-        setSelectedSector("");
-    }, [selectedCountry]);
-
-    useEffect(() => {
-      let visibilityTimer;
-      let removalTimer;
-      if (uploadError) {
-        setErrorVisible(true);
-        visibilityTimer = setTimeout(() => {
-          setErrorVisible(false);
-        }, 4500);
-        removalTimer = setTimeout(() => {
-          setUploadError(null);
-        }, 5000);
-      }
-      return () => {
-        clearTimeout(visibilityTimer);
-        clearTimeout(removalTimer);
-      };
-    }, [uploadError]);
-
-    const onDrop = (acceptedFiles, rejectedFiles) => {
-      if (rejectedFiles && rejectedFiles.length > 0) {
-        const firstError = rejectedFiles[0].errors[0];
-        if (firstError.code === 'file-too-large') {
-          setUploadError(`File is too large. Maximum file size is 10MB.`);
-        } else {
-          setUploadError("File type not supported. Please upload a valid PDF document.");
-        }
-        setUploadedFile(null);
-      } else {
-        setUploadError(null);
-        setErrorVisible(false);
-        setUploadedFile(acceptedFiles[0]);
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      if (cancelSource.current) {
+        cancelSource.current.cancel("Upload cancelled: page left.");
+        cancelSource.current = null;
       }
     };
+  }, []);
 
-    const { getRootProps, getInputProps, isDragActive } = useDropzone({
-      accept: {
-        'application/pdf': ['.pdf']
-      },
-      onDrop,
-      multiple: false,
-      disabled: isLoading,
-      maxSize: 10485760, 
-    });
+  const navigate = useNavigate();
+  
+  const [selectedCountry, setSelectedCountry] = useState("usa");
+  const [selectedType, setSelectedType] = useState("private");
+  const [selectedSector, setSelectedSector] = useState("");
 
+  const [dscrCashFlow, setDscrCashFlow] = useState("");
+  const [dscrDebtService, setDscrDebtService] = useState("");
 
-    const handleNumberInput = (e) => {
+  const [uploadError, setUploadError] = useState(null);
+  const [errorVisible, setErrorVisible] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState(null);
+  
+  const [isLoading, setIsLoading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+  const [showOhlsonPrompt, setShowOhlsonPrompt] = useState(false);
+  const [esgData, setEsgData] = useState({});
+
+  const intervalRef = useRef(null);
+
+  useEffect(() => {
+      setSelectedSector("");
+  }, [selectedCountry]);
+
+  useEffect(() => {
+    let visibilityTimer;
+    let removalTimer;
+    if (uploadError) {
+      setErrorVisible(true);
+      visibilityTimer = setTimeout(() => {
+        setErrorVisible(false);
+      }, 4500);
+      removalTimer = setTimeout(() => {
+        setUploadError(null);
+      }, 5000);
+    }
+    return () => {
+      clearTimeout(visibilityTimer);
+      clearTimeout(removalTimer);
+    };
+  }, [uploadError]);
+
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, []);
+
+  const onDrop = (acceptedFiles, rejectedFiles) => {
+    if (rejectedFiles && rejectedFiles.length > 0) {
+      const firstError = rejectedFiles[0].errors[0];
+      if (firstError.code === 'file-too-large') {
+        setUploadError(`File is too large. Maximum file size is 10MB.`);
+      } else {
+        setUploadError("File type not supported. Please upload a valid PDF document.");
+      }
+      setUploadedFile(null);
+    } else {
+      setUploadError(null);
+      setErrorVisible(false);
+      setUploadedFile(acceptedFiles[0]);
+    }
+  };
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    accept: {
+      'application/pdf': ['.pdf']
+    },
+    onDrop,
+    multiple: false,
+    disabled: isLoading || showOhlsonPrompt,
+    maxSize: 10485760, 
+  });
+
+  const handleNumberInput = (e) => {
     if (["e", "E", "+", "-"].includes(e.key)) {
       e.preventDefault();
     }
@@ -424,227 +452,301 @@ function UploadYourDocsPanel() {
     }
   };
 
-    const handlePaste = (e) => {
-      const paste = e.clipboardData.getData('text');
-      if (!/^\d*\.?\d*$/.test(paste)) {
-        e.preventDefault();
-      }
-    };
+  const handlePaste = (e) => {
+    const paste = e.clipboardData.getData('text');
+    if (!/^\d*\.?\d*$/.test(paste)) {
+      e.preventDefault();
+    }
+  };
 
-    const handleWheel = (e) => {
-      e.target.blur();
-    };
+  const handleWheel = (e) => {
+    e.target.blur();
+  };
 
-    const handleUpload = async () => {
-      if (!uploadedFile || !selectedSector) {
-        setUploadError("Please select the Country of Operation, choose a Company Type, and upload a PDF file to continue.");
-        return;
-      }
+  const handleEsgChange = (data) => {
+      setEsgData(data);
+  };
 
-      const formData = new FormData();
-      formData.append('document', uploadedFile);
-      formData.append('country', selectedCountry);
-      formData.append('companyType', selectedType);
-      formData.append('industrySector', selectedSector);
-      formData.append('dscrCashFlow', dscrCashFlow);
-      formData.append('dscrDebtService', dscrDebtService);
+  const performUpload = async (ohlsonData) => {
+    if (isLoading) return;
+    if (!uploadedFile) {
+      setUploadError("Missing file. Please reselect the PDF.");
+      return;
+    }
 
-      setIsLoading(true);
-      setUploadProgress(0);
-      setIsAnalyzing(false);
+    const formData = new FormData();
+    formData.append('document', uploadedFile);
+    formData.append('country', selectedCountry);
+    formData.append('companyType', selectedType);
+    formData.append('industrySector', selectedSector || '');
+    formData.append('dscrCashFlow', dscrCashFlow);
+    formData.append('dscrDebtService', dscrDebtService);
+    if (ohlsonData?.previousPdfFile) {
+      formData.append('previousDocument', ohlsonData.previousPdfFile);
+    }
+    if (ohlsonData?.netIncome_t_minus_1 != null && ohlsonData.netIncome_t_minus_1 !== '') {
+      formData.append('netIncome_t_minus_1', ohlsonData.netIncome_t_minus_1);
+    }
+    formData.append('esgRating', esgData.esgRating || '');
+    formData.append('esgScore_E', esgData.esgScore_E || 0);
+    formData.append('esgScore_S', esgData.esgScore_S || 0);
+    formData.append('esgScore_G', esgData.esgScore_G || 0);
 
-      try {
-        const response = await axios.post("http://127.0.0.1:5000/api/upload", formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          },
-          onUploadProgress: (progressEvent) => {
-            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-            setUploadProgress(Math.min(percentCompleted, 80));
+    setIsLoading(true);
+    setUploadProgress(0);
+    setIsAnalyzing(false);
 
-            if (percentCompleted === 100) {
-              setIsAnalyzing(true);
+    cancelSource.current = axios.CancelToken.source();
+
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    try {
+      const response = await axios.post("http://127.0.0.1:5000/api/upload", formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        cancelToken: cancelSource.current.token,
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          setUploadProgress(Math.min(percentCompleted, 80));
+
+          if (percentCompleted === 100) {
+            setIsAnalyzing(true);
+            if (!intervalRef.current) {
               intervalRef.current = setInterval(() => {
-                setUploadProgress(prevProgress => {
-                  if (prevProgress >= 99) {
+                setUploadProgress(prev => {
+                  if (prev >= 99) {
                     clearInterval(intervalRef.current);
+                    intervalRef.current = null;
                     return 99;
                   }
-                  return prevProgress + 1;
+                  return prev + 1;
                 });
-              }, 400); 
+              }, 400);
             }
           }
-        });
-        
-        clearInterval(intervalRef.current);
-        setUploadProgress(100);
-        setTimeout(() => {
-            navigate('/results', { state: { results: response.data } });
-        }, 500);
-        
-      } catch (error) {
-        console.error("Uploading error:", error);
+        }
+      });
+
+      setUploadProgress(100);
+      setTimeout(() => {
+        if (isMountedRef.current) {
+          navigate('/results', { state: { results: response.data } });
+        } else {
+          console.log("Navigation cancelled: component unmounted before response.");
+        }
+      }, 300);
+
+
+    } catch (error) {
+      if (axios.isCancel?.(error) || error?.code === 'ERR_CANCELED') {
+        console.log('Upload canceled/aborted.');
+        return;
+      }
+      console.error("Uploading error:", error);
+      if (isMountedRef.current) {
         setUploadError("An error occurred while uploading the file.");
         setIsLoading(false);
-      } finally {
-        clearInterval(intervalRef.current);
+        setIsAnalyzing(false);
       }
-    };
-    
-    const countryKey = selectedCountry === 'italy' ? 'Italy' : 'USA';
+    } finally {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      cancelSource.current = null;
+    }
+  };
 
-    return(
-        <UploadPanelWrapper>
-            <LoadingOverlay isLoading={isLoading} />
-            
-            <SelectorsContainer>
-              <SelectorGroup>
-                <SectionLabel>Country of Operation</SectionLabel>
-                <OptionsContainer>
-                  {countryChoice.map(option => (
-                    <StyledRadioButton key={option.value} checked={selectedCountry === option.value}>
-                      <input
-                        type="radio"
-                        id={option.value}
-                        name="country"
-                        value={option.value}
-                        checked={selectedCountry === option.value}
-                        onChange={(e) => setSelectedCountry(e.target.value)}
-                        required
-                        autoComplete="off"
-                      />
-                      {option.label}
-                    </StyledRadioButton>
-                  ))}
-                </OptionsContainer>
-              </SelectorGroup>
+  const handleUpload = async () => {
+    if (!uploadedFile) {
+      setUploadError("Please upload a PDF file to continue.");
+      return;
+    }
+    setShowOhlsonPrompt(true);
+  }
+  
+  const countryKey = selectedCountry === 'italy' ? 'Italy' : 'USA';
 
-              <SelectorGroup>
-                <SectionLabel>Company Type</SectionLabel>
-                <OptionsContainer>
-                  {companyType.map(option => (
-                    <StyledRadioButton key={option.value} checked={selectedType === option.value}>
-                      <input
-                        type="radio"
-                        id={option.value}
-                        name="companyType"
-                        value={option.value}
-                        checked={selectedType === option.value}
-                        onChange={(e) => setSelectedType(e.target.value)}
-                        required
-                        autoComplete="off"
-                      />
-                      {option.label}
-                    </StyledRadioButton>
-                  ))}
-                </OptionsContainer>
-              </SelectorGroup>
-
-              <SelectorGroup>
-                <SectionLabel>Industry Sector</SectionLabel>
-                <StyledSelect 
-                  name="industrySector" 
-                  value={selectedSector} 
-                  onChange={(e) => setSelectedSector(e.target.value)} 
-                  autoComplete="off"
-                >
-                  <option value="">-- Select a Sector --</option>
-                  {(industrySectors[countryKey] || []).map(sector => (
-                    <option key={sector.value} value={sector.value}>
-                      {sector.label}
-                    </option>
-                  ))}
-                </StyledSelect>
-              </SelectorGroup>
-
-            </SelectorsContainer>
-
-            <OptionalSectionLabel>PROSPECTIVE DATA (DSCR)<OptionalBadgePanel>*Optional</OptionalBadgePanel></OptionalSectionLabel>
-            <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
-              <StyledOptionalInput 
-                type="number" 
-                name="dscrCashFlow" 
-                placeholder="Expected Cash Flow (6m)"
-                value={dscrCashFlow}
-                onChange={(e) => setDscrCashFlow(e.target.value)}
-                onKeyDown={handleNumberInput}
-                onPaste={handlePaste}
-                onWheel={handleWheel}
-              />
-              <StyledOptionalInput 
-                type="number" 
-                name="dscrDebtService" 
-                placeholder="Debt Service Due (6m)"
-                value={dscrDebtService}
-                onChange={(e) => setDscrDebtService(e.target.value)}
-                onKeyDown={handleNumberInput}
-                onPaste={handlePaste}
-                onWheel={handleWheel}
-              />
-            </div>
-
-            <UploadDocContainer {...getRootProps()} isDragActive={isDragActive}>
-              <input {...getInputProps()} />
-              {uploadedFile ? (
-                <FilePreviewContainer>
-                  <FilePreview>Selected file:</FilePreview>
-                  <StyledDocsIcon 
-                    src={
-                      uploadedFile &&
-                      pdfIcon
-                    }
-                    alt="Uploaded file Icon"
-                  />
-                  <FilePreviewTitle>{uploadedFile.name}</FilePreviewTitle>
-                </FilePreviewContainer>
-              ) : (
-                <>
-                  <SquareDocContainer>
-                    <UploadDocIcon 
-                      src={uploadDocsIcon} 
-                      alt="Upload file Icon" 
-                      tabIndex={0}
+  return(
+      <UploadPanelWrapper>
+          <LoadingOverlay
+            isLoading={isLoading}
+            aria-busy={isLoading}
+            aria-live="polite"
+            role="status"
+          />
+          
+          <SelectorsContainer>
+            <SelectorGroup>
+              <SectionLabel>Country of Operation</SectionLabel>
+              <OptionsContainer>
+                {countryChoice.map(option => (
+                  <StyledRadioButton key={option.value} checked={selectedCountry === option.value}>
+                    <input
+                      type="radio"
+                      id={option.value}
+                      name="country"
+                      value={option.value}
+                      checked={selectedCountry === option.value}
+                      onChange={(e) => setSelectedCountry(e.target.value)}
+                      required
+                      autoComplete="off"
                     />
-                  </SquareDocContainer>
+                    {option.label}
+                  </StyledRadioButton>
+                ))}
+              </OptionsContainer>
+            </SelectorGroup>
+
+            <SelectorGroup>
+              <SectionLabel>Company Type</SectionLabel>
+              <OptionsContainer>
+                {companyType.map(option => (
+                  <StyledRadioButton key={option.value} checked={selectedType === option.value}>
+                    <input
+                      type="radio"
+                      id={option.value}
+                      name="companyType"
+                      value={option.value}
+                      checked={selectedType === option.value}
+                      onChange={(e) => setSelectedType(e.target.value)}
+                      required
+                      autoComplete="off"
+                    />
+                    {option.label}
+                  </StyledRadioButton>
+                ))}
+              </OptionsContainer>
+            </SelectorGroup>
+
+            <SelectorGroup>
+              <SectionLabel>Industry Sector</SectionLabel>
+              <StyledSelect 
+                name="industrySector" 
+                value={selectedSector} 
+                onChange={(e) => setSelectedSector(e.target.value)} 
+                autoComplete="off"
+              >
+                <option value="">-- Select a Sector --</option>
+                {(industrySectors[countryKey] || []).map(sector => (
+                  <option key={sector.value} value={sector.value}>
+                    {sector.label}
+                  </option>
+                ))}
+              </StyledSelect>
+            </SelectorGroup>
+
+          </SelectorsContainer>
+
+          <OptionalSectionLabel>PROSPECTIVE DATA (DSCR)<OptionalBadgePanel>*Optional</OptionalBadgePanel></OptionalSectionLabel>
+          <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
+            <StyledOptionalInput 
+              type="number" 
+              name="dscrCashFlow" 
+              placeholder="Expected Cash Flow (6m)"
+              value={dscrCashFlow}
+              onChange={(e) => setDscrCashFlow(e.target.value)}
+              onKeyDown={handleNumberInput}
+              onPaste={handlePaste}
+              onWheel={handleWheel}
+            />
+            <StyledOptionalInput 
+              type="number" 
+              name="dscrDebtService" 
+              placeholder="Debt Service Due (6m)"
+              value={dscrDebtService}
+              onChange={(e) => setDscrDebtService(e.target.value)}
+              onKeyDown={handleNumberInput}
+              onPaste={handlePaste}
+              onWheel={handleWheel}
+            />
+          </div>
+          
+          <OptionalSectionLabel>SUSTAINABILITY (ESG)<OptionalBadgePanel>*Optional</OptionalBadgePanel></OptionalSectionLabel>
+          <EsgInput onChange={handleEsgChange} />
+
+          <UploadDocContainer 
+            {...getRootProps()}
+            isDragActive={isDragActive}
+            role="button"
+            tabIndex={0}
+            aria-label="Upload PDF"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                document.getElementById('fileInput')?.click();
+              }
+            }}
+          >
+            <input id="fileInput" {...getInputProps()} />
+            {uploadedFile ? (
+              <FilePreviewContainer>
+                <FilePreview>Selected file:</FilePreview>
+                <StyledDocsIcon 
+                  src={
+                    uploadedFile &&
+                    pdfIcon
+                  }
+                  alt="Uploaded file Icon"
+                />
+                <FilePreviewTitle>{uploadedFile.name}</FilePreviewTitle>
+              </FilePreviewContainer>
+            ) : (
+              <>
+                <SquareDocContainer>
+                  <UploadDocIcon 
+                    src={uploadDocsIcon} 
+                    alt="Upload file Icon" 
+                    tabIndex={0}
+                  />
+                </SquareDocContainer>
+                <label htmlFor="fileInput">
                   <StyledSubText>Drag and drop your file here or click to browse...</StyledSubText>
-                </>
+                </label>
+              </>
+            )}
+          </UploadDocContainer>
+          
+          {uploadError && <ErrorMessage visible={errorVisible}>{uploadError}</ErrorMessage>}
+          
+          <DocsIconsContainer>
+            <StyledDocsIcon 
+              src={pdfIcon} 
+              alt="Info PDF Icon" 
+            />
+            <StyledDocsIcon 
+              src={sendIcon} 
+              alt="Info send Icon" 
+            />
+            <StyledDocsIconAI 
+              src={aiIcon} 
+              alt="Info AI Icon" 
+            />
+          </DocsIconsContainer>
+
+          <LoadingFeedbackWrapper>
+              {isLoading && (
+                <ProgressBarContainer>
+                  <ProgressBarFill progress={uploadProgress} />
+                </ProgressBarContainer>
               )}
-            </UploadDocContainer>
-            
-            {uploadError && <ErrorMessage visible={errorVisible}>{uploadError}</ErrorMessage>}
-            
-            <DocsIconsContainer>
-              <StyledDocsIcon 
-                src={pdfIcon} 
-                alt="Info PDF Icon" 
-              />
-              <StyledDocsIcon 
-                src={sendIcon} 
-                alt="Info send Icon" 
-              />
-              <StyledDocsIconAI 
-                src={aiIcon} 
-                alt="Info AI Icon" 
-              />
-            </DocsIconsContainer>
 
-            <LoadingFeedbackWrapper>
-                {isLoading && (
-                  <ProgressBarContainer>
-                    <ProgressBarFill progress={uploadProgress} />
-                  </ProgressBarContainer>
-                )}
-
-                <ButtonWrapper>
-                  <StyledButton type='button' onClick={handleUpload} disabled={isLoading}>
-                      {isLoading ? (isAnalyzing ? 'Analyzing with AI...' : `Uploading... ${uploadProgress}%`) : 'Upload & Analyze'}
-                  </StyledButton>
-                </ButtonWrapper>
-            </LoadingFeedbackWrapper>
-
-        </UploadPanelWrapper>
-    )
+              <ButtonWrapper>
+                <StyledButton type='button' onClick={handleUpload} disabled={isLoading || showOhlsonPrompt}>
+                    {isLoading ? (isAnalyzing ? 'Analyzing with AI...' : `Uploading... ${uploadProgress}%`) : 'Upload & Analyze'}
+                </StyledButton>
+              </ButtonWrapper>
+          </LoadingFeedbackWrapper>
+          <PopupPromptModal
+            isOpen={showOhlsonPrompt}
+            isLoading={isLoading}
+            onClose={() => { if (!isLoading) setShowOhlsonPrompt(false); }}
+            onConfirm={(data) => {
+              setShowOhlsonPrompt(false);
+              performUpload(data);
+            }}
+          />
+      </UploadPanelWrapper>
+  )
 }
 
 export default UploadYourDocsPanel;

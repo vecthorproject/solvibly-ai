@@ -48,11 +48,13 @@ const ColorBar = styled.div`
     const [stop1, stop2] = props.stops;
 
     if (props.isBinary) {
-        const [color1, color2] = [colors.critical, colors.good];
-        return `linear-gradient(90deg, ${color1} ${stop1}%, ${color2} ${stop1}%)`;
+      const [color1, color2] = props.logic === 'lower' ? [colors.good, colors.critical] : [colors.critical, colors.good];
+      return `linear-gradient(90deg, ${color1} ${stop1}%, ${color2} ${stop1}%)`;
     }
-      
-    const [color1, color2, color3] = [colors.critical, colors.adequate, colors.good];
+    
+    const [color1, color2, color3] = props.logic === 'lower' 
+      ? [colors.good, colors.adequate, colors.critical]
+      : [colors.critical, colors.adequate, colors.good];
     return `linear-gradient(90deg, 
       ${color1} ${stop1}%, 
       ${color2} ${stop1}% ${stop2}%, 
@@ -82,11 +84,19 @@ const ValueDisplay = styled.span`
   font-size: 0.85rem;
   font-family: system-ui, sans-serif;
   color: #2D3748;
-  left: ${props => props.position}%;
+  
+  left: ${props => {
+    const min = 2;
+    const max = 98;
+    const safePos = Math.max(min, Math.min(max, props.position));
+    return `${safePos}%`;
+  }};
+  
   transform: translateX(-50%);
   white-space: nowrap;
   opacity: 0.97;
 `;
+
 
 const LabelsWrapper = styled.div`
   position: absolute;
@@ -146,17 +156,19 @@ const riskZoneColors = {
   'Safe Zone': '#B7F0D8',
   'Low Risk': '#B7F0D8',
   'Non-Distress': '#B7F0D8',
+  'Non-Distressed': '#B7F0D8',
   'Grey Zone': '#FAF3B6',
   'Distress Zone': '#F8B4B4',
   'High Risk': '#F8B4B4',
   'Failure Zone': '#F8B4B4',
+  'Distressed': '#F8B4B4',
   'N/A': '#718096'
 };
 
 const RiskZoneValue = styled.strong`
   background-color: ${props => riskZoneColors[props.zone] || '#718096'};
   margin: 0.25rem;
-  padding: 0.16rem 0.28rem;
+  padding: 0.15rem 0.30rem;
   border: 1px solid white;
   border-radius: 8px;
   font-weight: 500;
@@ -265,7 +277,7 @@ function ModelDisplay({ title, value, modelKey }) {
     let markerPosition, stop1, stop2, labelPositions, riskZone;
     let t1, t2; 
     let greyZoneWidth = 0;
-
+    
     if (isNumericValue && config) {
         const [min, max] = config.scale;
         [t1, t2] = config.thresholds;
@@ -302,20 +314,19 @@ function ModelDisplay({ title, value, modelKey }) {
         }
     }
 
-
     return (
         <GenBlock>
             <RatioBlock>
                 <StyledTitle>{title}</StyledTitle>
                 <StyledTitle>{formattedValue}</StyledTitle>
             </RatioBlock>
-
+            
             {isNumericValue && config && (
                 <>
                     <GaugeWrapper>
                         <ValueDisplay position={markerPosition}>{value.toFixed(4)}</ValueDisplay>
 
-                        <ColorBar stops={[stop1, stop2]} isBinary={isBinary} />
+                        <ColorBar stops={[stop1, stop2]} isBinary={isBinary} logic={config.logic} />
                         <ValueMarker position={markerPosition} />
                         
                         <LabelsWrapper>
@@ -365,20 +376,22 @@ function ModelDisplay({ title, value, modelKey }) {
             )}
 
             <LegendWrapper>
-                <LegendItem>
-                    <LegendDot color="#F8B4B4" />
-                    <span>{gaugeLabels[0]}</span>
-                </LegendItem>
-                {!isBinary && (
-                    <LegendItem>
-                        <LegendDot color="#FAF3B6" />
-                        <span>{gaugeLabels[1]}</span>
-                    </LegendItem>
-                )}
-                <LegendItem>
-                    <LegendDot color="#B7F0D8" />
-                    <span>{gaugeLabels[2]}</span>
-                </LegendItem>
+              {(() => {
+                const labels = isBinary 
+                  ? [gaugeLabels[0], gaugeLabels[2]]
+                  : [gaugeLabels[0], gaugeLabels[1], gaugeLabels[2]];
+
+                const colors = isBinary
+                  ? (config.logic === 'lower' ? ['#B7F0D8', '#F8B4B4'] : ['#F8B4B4', '#B7F0D8'])
+                  : (config.logic === 'lower' ? ['#B7F0D8', '#FAF3B6', '#F8B4B4'] : ['#F8B4B4', '#FAF3B6', '#B7F0D8']);
+
+                return labels.map((label, i) => (
+                  <LegendItem key={i}>
+                    <LegendDot color={colors[i]} />
+                    <span>{label}</span>
+                  </LegendItem>
+                ));
+              })()}
             </LegendWrapper>
         </GenBlock>
     )

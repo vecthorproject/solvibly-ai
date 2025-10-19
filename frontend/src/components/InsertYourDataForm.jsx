@@ -1,9 +1,10 @@
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
-import { useState } from "react";
-import { useNavigate } from "react-router";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { industrySectors } from '../data/DictOb';
+import EsgInput from './ESGInput.jsx';
 
 // --- STYLED COMPONENTS ---
 
@@ -24,7 +25,10 @@ const StyledLabel = styled.label`
   text-align: left;
   flex-shrink: 0;
   display: inline-block;
-  white-space: nowrap;
+  white-space: normal;
+  line-height: 1.2;
+  cursor: pointer;
+  user-select: none;
 `;
 
 const StyledInput = styled.input`
@@ -39,7 +43,7 @@ const StyledInput = styled.input`
 
   &:focus {
     outline: none;
-    border-color: #007bff;
+    border-color: #15a497;
   }
 
   &::-webkit-outer-spin-button,
@@ -49,6 +53,7 @@ const StyledInput = styled.input`
   }
   &[type="number"] {
     -moz-appearance: textfield;
+    appearance: textfield;
   }
 `;
 
@@ -75,9 +80,11 @@ const StyledCheckbox = styled.input`
 `;
 
 const CheckboxWrapper = styled.div`
-  width: 400px;
   display: flex;
   align-items: center;
+  gap: 10px;
+  width: auto;
+  margin: 2rem 0 1.3rem 0;
 `;
 
 const ButtonWrapper = styled.div`
@@ -102,6 +109,7 @@ const StyledButton = styled.button`
 
   &:hover {
     background-color: #118a7e;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
   }
 `;
 
@@ -127,6 +135,23 @@ const OptionalBadgeForm = styled.span`
   color: #718096;
   margin-left: 0.75rem;
   vertical-align: middle;
+`;
+
+const ErrorMessage = styled.div`
+  color: #E53E3E;
+  background-color: #FFF5F5;
+  border: 1px solid ${props => props.visible ? '#E53E3E' : 'transparent'};
+  border-radius: 8px;
+  width: 80%;
+  text-align: center;
+  font-family: system-ui, sans-serif;
+  font-size: 0.9rem;
+  overflow: hidden;
+  opacity: ${props => props.visible ? 1 : 0};
+  max-height: ${props => props.visible ? '500px' : '0'};
+  padding: ${props => props.visible ? '1rem' : '0 1rem'};
+  margin: ${props => props.visible ? '1rem auto 0' : '0 auto'};
+  transition: all 0.5s ease-in-out;
 `;
 
 // --- LABEL & TITLE DICTIONARY ---
@@ -159,10 +184,23 @@ const labels = {
     retainedEarnings: 'Retained Earnings',
     operatingCashFlow: 'Operating Cash Flow',
 
-      title_dscr: 'Prospective Data (DSCR)',
-      dscrCashFlow: 'Expected Operating Cash Flow (6 months)',
-      dscrDebtService: 'Debt Service Due (6 months)'
+    // --- Ohlson section ---
+    title_ohlsonOscore: 'Advanced Analysis (Ohlson O-Score)',
+    subtitle_ohlsonOscore: 'Also enable Ohlson O-Score analysis?',
+    netIncome_t_minus_1: 'Net Income',
+
+    // --- DSCR section ---
+    title_dscr: 'Prospective Data (DSCR)',
+    dscrCashFlow: 'Expected Operating Cash Flow',
+    dscrDebtService: 'Debt Service Due',
+    // --- extra labels for parentheses ---
+    label_previousYear: '(previous year)',
+    label_sixMonths: '(6 months)',
+
+    // --- ESG section ---
+    title_esg: 'Sustainability & Governance (ESG)',
   },
+
   Italy: {
     title_general: 'Dati Anagrafici e di Mercato',
     title_incomeStatement: 'Dati dal Conto Economico',
@@ -190,9 +228,21 @@ const labels = {
     retainedEarnings: 'Utili non distribuiti / Riserve',
     operatingCashFlow: 'Flusso di cassa operativo',
 
+    // --- Ohlson section ---
+    title_ohlsonOscore: 'Analisi Avanzata (Ohlson O-Score)',
+    subtitle_ohlsonOscore: 'Abilitare anche analisi Ohlson O-Score?',
+    netIncome_t_minus_1: 'Utile d\'esercizio',
+
+    // --- DSCR section ---
     title_dscr: 'Dati Previsionali (DSCR)',
-    dscrCashFlow: 'Flusso di cassa operativo atteso (6 mesi)',
-    dscrDebtService: 'Servizio del debito in scadenza (6 mesi)'
+    dscrCashFlow: 'Flusso di cassa operativo atteso',
+    dscrDebtService: 'Servizio del debito in scadenza',
+    // --- extra labels for parentheses ---
+    label_previousYear: '(anno precedente)',
+    label_sixMonths: '(6 mesi)',
+
+    // --- ESG section ---
+    title_esg: 'Sostenibilità e Governance (ESG)',
   }
 };
 
@@ -224,8 +274,32 @@ function InsertYourDataForm() {
     retainedEarnings: '',
     operatingCashFlow: '',
     dscrCashFlow: '',
-    dscrDebtService: ''
+    dscrDebtService: '',
+    enableOhlsonAnalysis: false,
+    netIncome_t_minus_1: '',
+    totalAssets_t_minus_1: '',
+    totalLiabilities_t_minus_1: '',
+    esgRating: '',
+    esgScore_E: null,
+    esgScore_S: null,
+    esgScore_G: null
   });
+
+  const [formError, setFormError] = useState(null);
+  const [errorVisible, setErrorVisible] = useState(false);
+
+  useEffect(() => {
+      let visibilityTimer;
+      let removalTimer;
+      if (formError) {
+          setErrorVisible(true);
+          visibilityTimer = setTimeout(() => { setErrorVisible(false); }, 4500);
+          removalTimer = setTimeout(() => { setFormError(null); }, 5000);
+      } return () => {
+          clearTimeout(visibilityTimer);
+          clearTimeout(removalTimer);
+      };
+  }, [formError]);
 
   const handleNumberInput = (e) => {
     if (["e", "E", "+", "-"].includes(e.key)) {
@@ -270,18 +344,28 @@ function InsertYourDataForm() {
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 11 }, (_, i) => currentYear - i);
 
+  const [isLoading, setIsLoading] = useState(false);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
     try {
       const response = await axios.post("http://127.0.0.1:5000/api/predict", formData, {
         headers: { "Content-Type": "application/json" }
-      });
-
+      });      
       navigate('/results', { state: { results: response.data } });
-
     } catch (error) {
       console.error("Sending error:", error);
+      setFormError("An error occurred while sending the data.");
+      setIsLoading(false);
     }
+  };
+
+  const handleEsgChange = (esgData) => {
+    setFormData(prevState => ({
+      ...prevState,
+      ...esgData
+    }));
   };
 
   return (
@@ -308,7 +392,7 @@ function InsertYourDataForm() {
           <StyledLabel htmlFor="industrySector">{currentLabels.industrySector}</StyledLabel>
           <StyledSelect id="industrySector" name="industrySector" value={formData.industrySector} onChange={handleChange}>
             <option value="">{currentLabels.selectSector}</option>
-            {industrySectors[formData.country].map(sector => (
+            {industrySectors[formData.country]?.map(sector => (
               <option key={sector.value} value={sector.value}>
                 {sector.label}
               </option>
@@ -337,7 +421,7 @@ function InsertYourDataForm() {
         {formData.isPubliclyListed && (
           <div css={formRowStyle}>
             <StyledLabel htmlFor="marketCapitalization">{currentLabels.marketCapitalization}</StyledLabel>
-            <StyledInput type="number" id="marketCapitalization" name="marketCapitalization" required value={formData.marketCapitalization} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
+            <StyledInput type="number" id="marketCapitalization" name="marketCapitalization" value={formData.marketCapitalization} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
           </div>
         )}
 
@@ -409,27 +493,91 @@ function InsertYourDataForm() {
           <StyledInput type="number" id="operatingCashFlow" name="operatingCashFlow" required value={formData.operatingCashFlow} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
         </div>
 
-        {/* --- SECTION 5: DSCR --- */}
+        {/* --- SECTION 5: OHLSON O-SCORE (OPTIONAL) --- */}
+        <div css={formRowStyle}>
+          <StyledLabel htmlFor="enableOhlsonAnalysis" style={{ whiteSpace: 'nowrap', width: '340px' }}>
+            {currentLabels.subtitle_ohlsonOscore}
+          </StyledLabel>
+          <CheckboxWrapper>
+            <StyledCheckbox
+              type="checkbox"
+              id="enableOhlsonAnalysis"
+              name="enableOhlsonAnalysis"
+              checked={formData.enableOhlsonAnalysis}
+              onChange={handleChange}
+            />
+          </CheckboxWrapper>
+        </div>
+
+        {formData.enableOhlsonAnalysis && (
+          <>
+            <div css={formRowStyle}>
+              <StyledLabel htmlFor="netIncome_t_minus_1">
+                {currentLabels.netIncome_t_minus_1} <span style={{ fontSize: '15px' }}>{currentLabels.label_previousYear}</span>
+              </StyledLabel>
+              <StyledInput 
+                type="number" 
+                id="netIncome_t_minus_1" 
+                name="netIncome_t_minus_1" 
+                value={formData.netIncome_t_minus_1} 
+                onChange={handleChange} 
+                onKeyDown={handleNumberInput} 
+                onPaste={handlePaste} 
+                onWheel={handleWheel} 
+              />
+            </div>
+          </>
+        )}
+
+        {/* --- SECTION 6: DSCR (OPTIONAL) --- */}
         <StyledTitle>
           {currentLabels.title_dscr}
           <OptionalBadgeForm>*Optional</OptionalBadgeForm>
         </StyledTitle>
 
           <div css={formRowStyle}>
-            <StyledLabel htmlFor="dscrCashFlow"  style={{ fontSize: '15px' }}>{currentLabels.dscrCashFlow}</StyledLabel>
-            <StyledInput type="number" id="dscrCashFlow" name="dscrCashFlow" value={formData.dscrCashFlow} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
+            <StyledLabel htmlFor="dscrCashFlow">
+              {currentLabels.dscrCashFlow} <span style={{ fontSize: '15px' }}>{currentLabels.label_sixMonths}</span>
+            </StyledLabel>
+            <StyledInput 
+              type="number" 
+              id="dscrCashFlow" 
+              name="dscrCashFlow" 
+              value={formData.dscrCashFlow} 
+              onChange={handleChange} 
+              onKeyDown={handleNumberInput} 
+              onPaste={handlePaste} 
+              onWheel={handleWheel} 
+            />
           </div>
+
           <div css={formRowStyle}>
-            <StyledLabel htmlFor="dscrDebtService" style={{ fontSize: '15px' }}>{currentLabels.dscrDebtService}</StyledLabel>
-            <StyledInput type="number" id="dscrDebtService" name="dscrDebtService" value={formData.dscrDebtService} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
+            <StyledLabel htmlFor="dscrDebtService">
+              {currentLabels.dscrDebtService} <span style={{ fontSize: '15px' }}>{currentLabels.label_sixMonths}</span>
+            </StyledLabel>
+            <StyledInput 
+              type="number" 
+              id="dscrDebtService" 
+              name="dscrDebtService" 
+              value={formData.dscrDebtService} 
+              onChange={handleChange} 
+              onKeyDown={handleNumberInput} 
+              onPaste={handlePaste} 
+              onWheel={handleWheel} 
+            />
           </div>
-        
-        {/* --- SECTION 6: SUBMIT --- */}
+
+          {/* --- SECTION 7: ESG (OPTIONAL) --- */}
+        <StyledTitle style={{ marginBottom:'0.5rem' }}>{currentLabels.title_esg}<OptionalBadgeForm>*Optional</OptionalBadgeForm></StyledTitle>
+        <EsgInput onChange={handleEsgChange} />
+
+        {/* --- SECTION 8: SUBMIT --- */}
         <ButtonWrapper>
-          <StyledButton type="submit">
-            Calculate Risk
+          <StyledButton type="submit" disabled={isLoading}>
+            {isLoading ? "Calculating..." : "Calculate Risk"}
           </StyledButton>
         </ButtonWrapper>
+        {formError && <ErrorMessage visible={errorVisible}>{formError}</ErrorMessage>}
       </div>
     </form>
   );

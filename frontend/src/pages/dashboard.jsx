@@ -10,7 +10,7 @@ const iconBox = css`
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: clamp(10rem, 22vw, 12rem); /* responsive width based on screen */
+  width: clamp(10rem, 22vw, 12rem);
 `;
 
 const imageStyle = css`
@@ -60,7 +60,7 @@ function Dashboard() {
         <h1
           css={css`
             font-family: 'Outfit', sans-serif;
-            font-size: clamp(1.8rem, 3.5vw, 2.4rem); /* responsive title */
+            font-size: clamp(1.8rem, 3.5vw, 2.4rem);
             letter-spacing: 0.04em;
             word-spacing: 0.2em;
             text-align: center;
@@ -78,8 +78,8 @@ function Dashboard() {
           display: flex;
           align-items: flex-start;
           justify-content: center;
-          gap: clamp(2rem, 5vw, 4rem); /* responsive spacing between icon blocks */
-          flex-wrap: wrap; /* enables wrapping on smaller screens */
+          gap: clamp(2rem, 5vw, 4rem);
+          flex-wrap: wrap;
         `}
       >
         <div css={iconBox}>
@@ -89,7 +89,7 @@ function Dashboard() {
               alt="Insert data Icon"
               css={imageStyle}
               role="button" 
-              tabIndex={0}   /* makes image focusable with keyboard */ // to test
+              tabIndex={0}
             />
           </Link>
           <p css={descrFeatures}>Insert your data</p>
@@ -102,7 +102,7 @@ function Dashboard() {
               alt="Upload docs Icon"
               css={imageStyle}
               role="button"
-              tabIndex={0} /* makes image focusable with keyboard */ // to test
+              tabIndex={0}
             />
           </Link>
           <p css={descrFeatures}>Upload your docs</p>
@@ -114,7 +114,7 @@ function Dashboard() {
             alt="Search data Icon"
             css={imageStyle}
             role="button"
-            tabIndex={0} /* makes image focusable with keyboard */ // to test
+            tabIndex={0}
           />
           <p css={descrFeatures}>Browse from Web</p>
         </div>
