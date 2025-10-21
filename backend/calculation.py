@@ -253,7 +253,18 @@ def _to_float_or_none(v):
     except Exception:
         return None
 
-def compute_esg_score(esg_rating=None, e=None, s=None, g=None, weights=None):
+def compute_esg_score(esg_rating=None, e=None, s=None, g=None, weights=None, esg_overall=None):
+    """
+    Aggiunte:
+      - esg_overall (0–100): se presente e valido, restituisce sia il numerico (0–100)
+        sia la lettera AAA..C (mappatura interna), solo se non è già stato fornito un rating letterale
+        e non sono disponibili i tre slider E/S/G.
+    Ordine di priorità (invariato, con l'inserimento del numerico al terzo posto):
+      1) rating letterale AAA..C
+      2) slider E/S/G (1–5) -> normalizzati a 0–100
+      3) esg_overall (0–100) -> anche lettera per UI
+      4) fallback: None
+    """
     rating = (esg_rating or "").strip().upper()
     e = _to_float_or_none(e)
     s = _to_float_or_none(s)
@@ -279,6 +290,32 @@ def compute_esg_score(esg_rating=None, e=None, s=None, g=None, weights=None):
             "source": "sliders",
             "rating": "",
             "e": e, "s": s, "g": g
+        }
+
+    esg_num = None
+    if esg_overall is not None and str(esg_overall) != "":
+        try:
+            esg_num = float(esg_overall)
+        except Exception:
+            esg_num = None
+
+    if esg_num is not None and esg_num >= 0 and esg_num <= 100:
+        def _to_letter(v):
+            if v >= 85: return "AAA"
+            if v >= 75: return "AA"
+            if v >= 65: return "A"
+            if v >= 55: return "BBB"
+            if v >= 45: return "BB"
+            if v >= 35: return "B"
+            if v >= 25: return "CCC"
+            if v >= 15: return "CC"
+            return "C"
+
+        return {
+            "overall_esg_score": round(esg_num),
+            "source": "numeric",
+            "rating": _to_letter(esg_num),
+            "e": None, "s": None, "g": None
         }
 
     return {

@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import RatioDisplay from '../components/RatioDisplay';
 import ModelDisplay from '../components/ModelDisplay';
 import EsgDisplay from '../components/ESGDisplay.jsx';
+import VecthorIndex from '../components/VecthorIndex.jsx';
 import usaIcon from '../graphics/Results/usa.svg';
 import italyIcon from '../graphics/Results/italy.svg';
 import { industrySectors } from '../data/DictOb.js';
@@ -69,7 +70,7 @@ const RiskScoreValue = styled.span`
      0.8px -0.8px 0 #718096,
     -0.8px  0.8px 0 #718096,
      0.8px  0.8px 0 #718096;
-  background-color: #B7F0D8;
+  background-color: ${p => p.bgColor || '#B7F0D8'};
   padding: 5px 15px;
   border-radius: 20px;
   margin-left: 10px;
@@ -120,8 +121,23 @@ function getSectorShortLabel(country, sectorKey) {
   return sector ? sector.shortLabel : 'N/A';
 }
 
-function getRiskInfo(value, modelKey) {
-  return { zone: 'Good', color: '#B7F0D8' }; // Placeholder
+const RISK_COLORS = {
+  low: '#B7F0D8',
+  medium: '#FAF3B6',
+  high: '#F8B4B4'
+};
+
+function getRiskInfo(solviblyBand, score) {
+  const band = (solviblyBand || '').toLowerCase();
+  const labelMap = {
+    low: 'Low Risk',
+    medium: 'Medium Risk',
+    high: 'High Risk'
+  };
+  const color = RISK_COLORS[band] || '#E2E8F0';
+  const label = labelMap[band] || 'N/A';
+  const value = (typeof score === 'number' && isFinite(score)) ? score : null;
+  return { label, color, value };
 }
 
 // --- MAIN COMPONENT ---
@@ -140,9 +156,9 @@ function Results() {
     country;
   const industrySectorLabel = getSectorShortLabel(countryKey, industrySectorKey);
 
-  const { zone: riskScore, color: riskColor } = getRiskInfo(resultsData.altmanZScore, 'altmanZScore'); // Placeholder
+  const { label: riskLabel, color: riskColor, value: riskValue } =
+    getRiskInfo(resultsData.solviblyRiskBand, resultsData.solviblyScore);
 
-  // --- ESG visibility/source infer ---
   const esgSource =
     resultsData.esgSource ||
     (resultsData.esgRating
@@ -174,8 +190,10 @@ function Results() {
         </InfoBlock>
         <RiskBlock>
           <RiskScoreLabel>
-            Risk Score: 
-            <RiskScoreValue bgColor={riskColor}>{riskScore}</RiskScoreValue>
+            Solvibly Score: 
+            <RiskScoreValue bgColor={riskColor}>
+              {riskLabel}
+            </RiskScoreValue>
           </RiskScoreLabel>
         </RiskBlock>
       </ResultsTopSection>
@@ -234,6 +252,17 @@ function Results() {
           />
         </>
       )}
+
+      {typeof resultsData.vecthorMLScore === 'number' && isFinite(resultsData.vecthorMLScore) && (
+        <>
+          <SectionTitle>Vecthor Index</SectionTitle>
+          <VecthorIndex
+            value={resultsData.vecthorMLScore}
+            thresholds={[0.40, 0.60]}
+          />
+        </>
+      )}
+
     </PageWrapper>
   )
 }
