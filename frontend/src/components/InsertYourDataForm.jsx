@@ -1,4 +1,4 @@
-import { css } from '@emotion/react';
+﻿import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -208,10 +208,10 @@ const labels = {
     title_cashFlow: 'Dati dal Rendiconto Finanziario',
     companyName: 'Nome Azienda',
     fiscalYear: 'Anno Fiscale',
-    country: 'Paese di Operatività',
+    country: 'Paese di OperativitÃ ',
     industrySector: 'Industria / Settore',
     selectSector: '---',
-    isPubliclyListed: 'L\'azienda è quotata?',
+    isPubliclyListed: 'L\'azienda Ã¨ quotata?',
     marketCapitalization: 'Capitalizzazione di Borsa',
     revenue: 'Ricavi delle vendite',
     ebit: 'Risultato operativo (EBIT)',
@@ -222,8 +222,8 @@ const labels = {
     inventories: 'Rimanenze',
     totalNonCurrentAssets: 'Totale Immobilizzazioni',
     tangibleFixedAssets: 'Immobilizzazioni materiali',
-    totalCurrentLiabilities: 'Totale Passività Correnti',
-    totalNonCurrentLiabilities: 'Totale Passività non Correnti',
+    totalCurrentLiabilities: 'Totale PassivitÃ  Correnti',
+    totalNonCurrentLiabilities: 'Totale PassivitÃ  non Correnti',
     totalEquity: 'Patrimonio Netto',
     retainedEarnings: 'Utili non distribuiti / Riserve',
     operatingCashFlow: 'Flusso di cassa operativo',
@@ -242,7 +242,7 @@ const labels = {
     label_sixMonths: '(6 mesi)',
 
     // --- ESG section ---
-    title_esg: 'Sostenibilità e Governance (ESG)',
+    title_esg: 'SostenibilitÃ  e Governance (ESG)',
   }
 };
 
@@ -350,7 +350,7 @@ function InsertYourDataForm() {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const response = await axios.post("http://127.0.0.1:5000/api/predict", formData, {
+      const response = await axios.post("/api/predict", formData, {
         headers: { "Content-Type": "application/json" }
       });      
       navigate('/results', { state: { results: response.data } });
