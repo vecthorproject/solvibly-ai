@@ -1,0 +1,7 @@
+# Normalise line endings (the project was started on Windows; keep LF in the repo).
+* text=auto eol=lf
+*.pdf binary
+*.joblib binary
+*.png binary
+*.jpg binary
+*.jpeg binary
