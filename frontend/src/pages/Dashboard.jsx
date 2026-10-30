@@ -70,6 +70,19 @@ function Dashboard() {
           Get started with a new{' '}
           <span css={css`color: #15a497`}>Project</span>
         </h1>
+        <p
+          css={css`
+            margin: 1rem auto 0;
+            max-width: 40rem;
+            font-family: system-ui, sans-serif;
+            font-size: 1rem;
+            color: #4a5568;
+            line-height: 1.5;
+          `}
+        >
+          Analisi del rischio da bilancio e verifica dei segnali di crisi previsti dal Codice della crisi
+          d&apos;impresa (CCII), con report stampabile per il professionista.
+        </p>
       </div>
 
       <div
@@ -108,15 +121,14 @@ function Dashboard() {
           <p css={descrFeatures}>Upload your docs</p>
         </div>
 
-        <div css={iconBox}>
+        <div css={iconBox} title="Coming soon">
           <img
             src={searchIcon}
-            alt="Search data Icon"
-            css={imageStyle}
-            role="button"
-            tabIndex={0}
+            alt="Search data Icon (coming soon)"
+            css={[imageStyle, css`opacity: 0.45; cursor: not-allowed; &:hover { transform: none; }`]}
+            aria-disabled="true"
           />
-          <p css={descrFeatures}>Browse from Web</p>
+          <p css={descrFeatures}>Browse from Web<br /><small>(coming soon)</small></p>
         </div>
       </div>
     </div>

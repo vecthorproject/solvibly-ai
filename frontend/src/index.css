@@ -77,3 +77,28 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+/* --- Print (Results → "Stampa / Salva PDF") --- */
+.print-only {
+  display: none;
+}
+
+@media print {
+  @page {
+    margin: 14mm;
+  }
+  header,
+  footer,
+  .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+  main button {
+    display: none !important;
+  }
+  body {
+    background: white;
+  }
+}

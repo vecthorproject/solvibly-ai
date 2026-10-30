@@ -4,7 +4,10 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { industrySectors } from '../data/DictOb';
+import { emptyCrisisData } from '../data/crisisConfig.js';
+import { makeNumberKeyDownHandler, makePasteHandler } from '../utils/numbers.js';
 import EsgInput from './ESGInput.jsx';
+import CrisisInput from './CrisisInput.jsx';
 
 // --- STYLED COMPONENTS ---
 
@@ -51,7 +54,7 @@ const StyledInput = styled.input`
     -webkit-appearance: none;
     margin: 0;
   }
-  &[type="number"] {
+  &[type="number" step="any"] {
     -moz-appearance: textfield;
     appearance: textfield;
   }
@@ -208,10 +211,10 @@ const labels = {
     title_cashFlow: 'Dati dal Rendiconto Finanziario',
     companyName: 'Nome Azienda',
     fiscalYear: 'Anno Fiscale',
-    country: 'Paese di OperativitÃ ',
+    country: 'Paese di Operatività',
     industrySector: 'Industria / Settore',
     selectSector: '---',
-    isPubliclyListed: 'L\'azienda Ã¨ quotata?',
+    isPubliclyListed: 'L\'azienda è quotata?',
     marketCapitalization: 'Capitalizzazione di Borsa',
     revenue: 'Ricavi delle vendite',
     ebit: 'Risultato operativo (EBIT)',
@@ -222,8 +225,8 @@ const labels = {
     inventories: 'Rimanenze',
     totalNonCurrentAssets: 'Totale Immobilizzazioni',
     tangibleFixedAssets: 'Immobilizzazioni materiali',
-    totalCurrentLiabilities: 'Totale PassivitÃ  Correnti',
-    totalNonCurrentLiabilities: 'Totale PassivitÃ  non Correnti',
+    totalCurrentLiabilities: 'Totale Passività Correnti',
+    totalNonCurrentLiabilities: 'Totale Passività non Correnti',
     totalEquity: 'Patrimonio Netto',
     retainedEarnings: 'Utili non distribuiti / Riserve',
     operatingCashFlow: 'Flusso di cassa operativo',
@@ -242,9 +245,18 @@ const labels = {
     label_sixMonths: '(6 mesi)',
 
     // --- ESG section ---
-    title_esg: 'SostenibilitÃ  e Governance (ESG)',
+    title_esg: 'Sostenibilità e Governance (ESG)',
+
+    // --- CCII section ---
+    title_ccii: "Verifica crisi d'impresa (CCII)",
   }
 };
+
+// Fields that can legitimately be negative (losses, negative equity or cash flows).
+const NEGATIVE_FIELDS = new Set([
+  'ebit', 'netIncome', 'retainedEarnings', 'operatingCashFlow', 'totalEquity',
+  'netIncome_t_minus_1', 'dscrCashFlow',
+]);
 
 // --- MAIN COMPONENT ---
 
@@ -255,7 +267,7 @@ function InsertYourDataForm() {
   const [formData, setFormData] = useState({
     companyName: '',
     fiscalYear: new Date().getFullYear(),
-    country: 'USA',
+    country: 'Italy',
     industrySector: '',
     isPubliclyListed: false,
     marketCapitalization: '',
@@ -282,7 +294,8 @@ function InsertYourDataForm() {
     esgRating: '',
     esgScore_E: null,
     esgScore_S: null,
-    esgScore_G: null
+    esgScore_G: null,
+    ...emptyCrisisData
   });
 
   const [formError, setFormError] = useState(null);
@@ -301,21 +314,14 @@ function InsertYourDataForm() {
       };
   }, [formError]);
 
-  const handleNumberInput = (e) => {
-    if (["e", "E", "+", "-"].includes(e.key)) {
-      e.preventDefault();
-    }
-    if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-      e.preventDefault();
-    }
+  const setField = (name, value) => {
+    setFormData(prevState => ({ ...prevState, [name]: value }));
   };
 
-  const handlePaste = (e) => {
-    const paste = e.clipboardData.getData('text');
-    if (!/^\d*\.?\d*$/.test(paste)) {
-      e.preventDefault();
-    }
-  };
+  const handleNumberInput = (e) => makeNumberKeyDownHandler(NEGATIVE_FIELDS.has(e.target.name))(e);
+
+  // Accepts amounts copied from statements or spreadsheets ("1.234.567", "(12.500)", "€ 3.200,50").
+  const handlePaste = (e) => makePasteHandler(setField, NEGATIVE_FIELDS.has(e.target.name))(e);
 
   const handleWheel = (e) => {
     e.target.blur();
@@ -333,6 +339,10 @@ function InsertYourDataForm() {
 
       if (name === 'country') {
         newState.industrySector = '';
+        newState.cndcecSector = '';
+      }
+      if (name === 'industrySector') {
+        newState.cndcecSector = '';
       }
 
       return newState;
@@ -356,7 +366,7 @@ function InsertYourDataForm() {
       navigate('/results', { state: { results: response.data } });
     } catch (error) {
       console.error("Sending error:", error);
-      setFormError("An error occurred while sending the data.");
+      setFormError(error?.response?.data?.error || "An error occurred while sending the data.");
       setIsLoading(false);
     }
   };
@@ -421,7 +431,7 @@ function InsertYourDataForm() {
         {formData.isPubliclyListed && (
           <div css={formRowStyle}>
             <StyledLabel htmlFor="marketCapitalization">{currentLabels.marketCapitalization}</StyledLabel>
-            <StyledInput type="number" id="marketCapitalization" name="marketCapitalization" value={formData.marketCapitalization} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
+            <StyledInput type="number" step="any" id="marketCapitalization" name="marketCapitalization" value={formData.marketCapitalization} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
           </div>
         )}
 
@@ -430,23 +440,23 @@ function InsertYourDataForm() {
         
         <div css={formRowStyle}>
           <StyledLabel htmlFor="revenue">{currentLabels.revenue}</StyledLabel>
-          <StyledInput type="number" id="revenue" name="revenue" required value={formData.revenue} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
+          <StyledInput type="number" step="any" id="revenue" name="revenue" required value={formData.revenue} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
         </div>
         <div css={formRowStyle}>
           <StyledLabel htmlFor="ebit">{currentLabels.ebit}</StyledLabel>
-          <StyledInput type="number" id="ebit" name="ebit" required value={formData.ebit} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
+          <StyledInput type="number" step="any" id="ebit" name="ebit" required value={formData.ebit} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
         </div>
         <div css={formRowStyle}>
           <StyledLabel htmlFor="netIncome">{currentLabels.netIncome}</StyledLabel>
-          <StyledInput type="number" id="netIncome" name="netIncome" required value={formData.netIncome} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
+          <StyledInput type="number" step="any" id="netIncome" name="netIncome" required value={formData.netIncome} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
         </div>
         <div css={formRowStyle}>
           <StyledLabel htmlFor="depreciationAndAmortization">{currentLabels.depreciationAndAmortization}</StyledLabel>
-          <StyledInput type="number" id="depreciationAndAmortization" required name="depreciationAndAmortization" value={formData.depreciationAndAmortization} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
+          <StyledInput type="number" step="any" id="depreciationAndAmortization" required name="depreciationAndAmortization" value={formData.depreciationAndAmortization} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
         </div>
         <div css={formRowStyle}>
           <StyledLabel htmlFor="interestExpense">{currentLabels.interestExpense}</StyledLabel>
-          <StyledInput type="number" id="interestExpense" required name="interestExpense" value={formData.interestExpense} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
+          <StyledInput type="number" step="any" id="interestExpense" required name="interestExpense" value={formData.interestExpense} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
         </div>
 
         {/* --- SECTION 3: BALANCE SHEET --- */}
@@ -454,35 +464,35 @@ function InsertYourDataForm() {
         
         <div css={formRowStyle}>
           <StyledLabel htmlFor="totalCurrentAssets">{currentLabels.totalCurrentAssets}</StyledLabel>
-          <StyledInput type="number" id="totalCurrentAssets" name="totalCurrentAssets" required value={formData.totalCurrentAssets} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
+          <StyledInput type="number" step="any" id="totalCurrentAssets" name="totalCurrentAssets" required value={formData.totalCurrentAssets} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
         </div>
         <div css={formRowStyle}>
           <StyledLabel htmlFor="inventories">{currentLabels.inventories}</StyledLabel>
-          <StyledInput type="number" id="inventories" name="inventories" required value={formData.inventories} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
+          <StyledInput type="number" step="any" id="inventories" name="inventories" required value={formData.inventories} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
         </div>
         <div css={formRowStyle}>
           <StyledLabel htmlFor="totalNonCurrentAssets">{currentLabels.totalNonCurrentAssets}</StyledLabel>
-          <StyledInput type="number" id="totalNonCurrentAssets" name="totalNonCurrentAssets" required value={formData.totalNonCurrentAssets} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
+          <StyledInput type="number" step="any" id="totalNonCurrentAssets" name="totalNonCurrentAssets" required value={formData.totalNonCurrentAssets} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
         </div>
         <div css={formRowStyle}>
           <StyledLabel htmlFor="tangibleFixedAssets">{currentLabels.tangibleFixedAssets}</StyledLabel>
-          <StyledInput type="number" id="tangibleFixedAssets" name="tangibleFixedAssets" required value={formData.tangibleFixedAssets} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
+          <StyledInput type="number" step="any" id="tangibleFixedAssets" name="tangibleFixedAssets" required value={formData.tangibleFixedAssets} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
         </div>
         <div css={formRowStyle}>
           <StyledLabel htmlFor="totalCurrentLiabilities">{currentLabels.totalCurrentLiabilities}</StyledLabel>
-          <StyledInput type="number" id="totalCurrentLiabilities" name="totalCurrentLiabilities" required value={formData.totalCurrentLiabilities} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
+          <StyledInput type="number" step="any" id="totalCurrentLiabilities" name="totalCurrentLiabilities" required value={formData.totalCurrentLiabilities} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
         </div>
         <div css={formRowStyle}>
           <StyledLabel htmlFor="totalNonCurrentLiabilities">{currentLabels.totalNonCurrentLiabilities}</StyledLabel>
-          <StyledInput type="number" id="totalNonCurrentLiabilities" name="totalNonCurrentLiabilities" required value={formData.totalNonCurrentLiabilities} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
+          <StyledInput type="number" step="any" id="totalNonCurrentLiabilities" name="totalNonCurrentLiabilities" required value={formData.totalNonCurrentLiabilities} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
         </div>
         <div css={formRowStyle}>
           <StyledLabel htmlFor="totalEquity">{currentLabels.totalEquity}</StyledLabel>
-          <StyledInput type="number" id="totalEquity" name="totalEquity" required value={formData.totalEquity} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
+          <StyledInput type="number" step="any" id="totalEquity" name="totalEquity" required value={formData.totalEquity} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
         </div>
         <div css={formRowStyle}>
           <StyledLabel htmlFor="retainedEarnings">{currentLabels.retainedEarnings}</StyledLabel>
-          <StyledInput type="number" id="retainedEarnings" name="retainedEarnings" required value={formData.retainedEarnings} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
+          <StyledInput type="number" step="any" id="retainedEarnings" name="retainedEarnings" required value={formData.retainedEarnings} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
         </div>
 
         {/* --- SECTION 4: CASH FLOW --- */}
@@ -490,7 +500,7 @@ function InsertYourDataForm() {
 
         <div css={formRowStyle}>
           <StyledLabel htmlFor="operatingCashFlow">{currentLabels.operatingCashFlow}</StyledLabel>
-          <StyledInput type="number" id="operatingCashFlow" name="operatingCashFlow" required value={formData.operatingCashFlow} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
+          <StyledInput type="number" step="any" id="operatingCashFlow" name="operatingCashFlow" required value={formData.operatingCashFlow} onChange={handleChange} onKeyDown={handleNumberInput} onPaste={handlePaste} onWheel={handleWheel} />
         </div>
 
         {/* --- SECTION 5: OHLSON O-SCORE (OPTIONAL) --- */}
@@ -516,7 +526,7 @@ function InsertYourDataForm() {
                 {currentLabels.netIncome_t_minus_1} <span style={{ fontSize: '15px' }}>{currentLabels.label_previousYear}</span>
               </StyledLabel>
               <StyledInput 
-                type="number" 
+                type="number" step="any" 
                 id="netIncome_t_minus_1" 
                 name="netIncome_t_minus_1" 
                 value={formData.netIncome_t_minus_1} 
@@ -529,7 +539,22 @@ function InsertYourDataForm() {
           </>
         )}
 
-        {/* --- SECTION 6: DSCR (OPTIONAL) --- */}
+        {/* --- SECTION 6: CCII (ITALY) or DSCR (USA) --- */}
+        {formData.country === 'Italy' ? (
+          <>
+            <StyledTitle>
+              {currentLabels.title_ccii}
+              <OptionalBadgeForm>*Facoltativo</OptionalBadgeForm>
+            </StyledTitle>
+            <CrisisInput
+              value={formData}
+              onChange={setField}
+              industrySector={formData.industrySector}
+              showBalanceSheetExtras
+            />
+          </>
+        ) : (
+        <>
         <StyledTitle>
           {currentLabels.title_dscr}
           <OptionalBadgeForm>*Optional</OptionalBadgeForm>
@@ -540,7 +565,7 @@ function InsertYourDataForm() {
               {currentLabels.dscrCashFlow} <span style={{ fontSize: '15px' }}>{currentLabels.label_sixMonths}</span>
             </StyledLabel>
             <StyledInput 
-              type="number" 
+              type="number" step="any" 
               id="dscrCashFlow" 
               name="dscrCashFlow" 
               value={formData.dscrCashFlow} 
@@ -556,7 +581,7 @@ function InsertYourDataForm() {
               {currentLabels.dscrDebtService} <span style={{ fontSize: '15px' }}>{currentLabels.label_sixMonths}</span>
             </StyledLabel>
             <StyledInput 
-              type="number" 
+              type="number" step="any" 
               id="dscrDebtService" 
               name="dscrDebtService" 
               value={formData.dscrDebtService} 
@@ -566,6 +591,8 @@ function InsertYourDataForm() {
               onWheel={handleWheel} 
             />
           </div>
+        </>
+        )}
 
           {/* --- SECTION 7: ESG (OPTIONAL) --- */}
         <StyledTitle style={{ marginBottom:'0.5rem' }}>{currentLabels.title_esg}<OptionalBadgeForm>*Optional</OptionalBadgeForm></StyledTitle>

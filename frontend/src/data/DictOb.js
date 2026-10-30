@@ -94,7 +94,7 @@ export const ratioLearnMoreDict = {
 
 export const normativeLearnMoreDict = {
   dscr: {
-    significance: `The Debt Service Coverage Ratio (DSCR) is a key forward-looking indicator required by the Italian Corporate Crisis Code. It measures the prospective ability of a company to cover its upcoming debt service (principal + interest) with its expected operating cash flow.`,
+    significance: `The Debt Service Coverage Ratio (DSCR) is the key forward-looking indicator used to verify debt sustainability under the Italian Corporate Crisis Code (art. 3 CCII: sustainability of debts for at least the next twelve months; CNDCEC: six-month horizon). It measures the ability to cover the debt falling due in the period with the cash flows expected in the same period.`,
     notes: `A value below 1.0 is a primary alert signal, indicating that the company is not expected to generate enough cash to meet its financial obligations, suggesting a high risk of crisis. A value equal to 1.0 means the company can exactly cover its debt service, which is considered the minimum safe threshold.`
   },
 };
@@ -102,7 +102,7 @@ export const normativeLearnMoreDict = {
 export const modelLearnMoreDict = {
   altmanZScore: {
     significance: `The pioneering statistical model for predicting corporate bankruptcy, developed by Edward Altman in 1968. It combines five key financial ratios into a single score to classify a company's financial health into distinct zones.`,
-    notes: `The model has three main variants: the original Z-Score for public manufacturing firms, the Z'-Score for private companies, and the Z''-Score for non-manufacturing firms. The zones (Distress, Grey, Safe) indicate the probability of financial distress within two years.`
+    notes: `Solvibly picks the variant that matches the company: the original Z-Score for listed manufacturers (zones 1.81 / 2.99), the Z'-Score for private manufacturers (1.23 / 2.90) and the Z''-Score for non-manufacturing companies, public or private (1.10 / 2.60). Each variant is compared with its own thresholds. The zones (Distress, Grey, Safe) indicate the risk of financial distress within two years.`
   },
   springateSScore: {
     significance: `A four-ratio model developed in Canada that uses discriminant analysis to predict corporate failure. It was noted for its very high accuracy (92.5%) on its initial test sample.`,
@@ -110,7 +110,7 @@ export const modelLearnMoreDict = {
   },
   tafflerTScore: {
     significance: `A UK-based solvency model, similar in structure to Altman's, used to predict corporate failure. It combines four key ratios related to profitability, working capital, financial risk, and liquidity.`,
-    notes: `The score is interpreted through specific zones: a score below 0.2 indicates a high risk of failure, while a score above 0.3 suggests a low risk. The area in between is a "grey zone" requiring further analysis.`
+    notes: `Solvibly uses the 1983 formulation (z = 3.20 + 12.18·x1 + 2.50·x2 − 10.68·x3 + 0.029·x4, where x4 is the no-credit interval). Its cut-off is 0: a negative score indicates a financial profile similar to companies that failed ("at risk"), a positive score a solvent profile. The 0.2/0.3 zones sometimes quoted belong to a different, simplified version of the model.`
   },
   fulmerHFactor: {
     significance: `A complex model developed from a large set of 40 financial ratios to predict bankruptcy one year in advance. It is noted for its statistical rigor and high accuracy in initial tests.`,
@@ -291,9 +291,9 @@ export const modelThresholds = {
     logic: 'higher'
   },
   tafflerTScore: {
-    thresholds: [0.2, 0.3],
-    scale: [-0.5, 1],
-    labels: ['High Risk', 'Grey Zone', 'Low Risk'],
+    thresholds: [0, 0], // cut-off 0 (Taffler 1983 model with constant 3.20)
+    scale: [-5, 10],
+    labels: ['High Risk', '', 'Low Risk'], // binary
     logic: 'higher'
   },
   fulmerHFactor: {

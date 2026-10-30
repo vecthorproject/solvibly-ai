@@ -307,7 +307,6 @@ function RatioDisplay({ title, value, ratioKey, country, industrySector, dataTyp
     const isNumericValue = typeof value === 'number';
     const normalizedCountry = country?.toLowerCase() === 'italy' ? 'Italy' : country?.toLowerCase() === 'usa' ? 'USA' : country;
     const benchmark = industryBenchmarks[normalizedCountry]?.[ratioKey]?.[industrySector] || 'N/A';
-    const formattedValue = formatRatioValue(value, ratioKey);
 
     let markerPosition, stop1, stop2, labelPositions, valueZone;
     let t1, t2; 
@@ -386,6 +385,9 @@ function RatioDisplay({ title, value, ratioKey, country, industrySector, dataTyp
                       : benchmark
                     }
                   </strong>
+                  <span style={{ marginLeft: '0.5rem', fontSize: '0.75rem', fontStyle: 'italic' }}>
+                    {normalizedCountry === 'Italy' ? '(valori indicativi di settore)' : '(indicative sector values)'}
+                  </span>
                 </SubLabelText>
             )}
 
