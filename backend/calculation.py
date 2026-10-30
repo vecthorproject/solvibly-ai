@@ -24,6 +24,29 @@ def calculate_dscr(financials):
 
 # --- MODELS ---
 
+# Altman variants and their published cut-offs (distress, safe).
+#   Z   (1968): public manufacturing firms, X4 = market value of equity / total liabilities
+#   Z'  (1983): private manufacturing firms, X4 = book equity / total liabilities
+#   Z'' (1995): non-manufacturing firms (public or private), 4 ratios, no asset turnover
+ALTMAN_VARIANTS = {
+    "Z":  {"label": "Z-Score (public manufacturing)",   "thresholds": (1.81, 2.99)},
+    "Z1": {"label": "Z'-Score (private manufacturing)", "thresholds": (1.23, 2.90)},
+    "Z2": {"label": "Z''-Score (non-manufacturing)",    "thresholds": (1.10, 2.60)},
+}
+
+
+def altman_variant(financials):
+    """Picks the Altman variant that matches the company profile."""
+    is_public = bool(financials.get("isPubliclyListed"))
+    sector = str(financials.get("industrySector") or "").strip().lower()
+    market_cap = financials.get("marketCapitalization") or 0
+    if sector == "manufacturing":
+        if is_public and market_cap > 0:
+            return "Z"
+        return "Z1"
+    return "Z2"
+
+
 def calculate_altman_zscore(financials):
     try:
         ta = financials["totalAssets"]
@@ -38,18 +61,16 @@ def calculate_altman_zscore(financials):
         X3 = ebit / ta
         X5 = sales / ta
 
-        is_public = bool(financials.get("isPubliclyListed"))
-        sector = str(financials.get("industrySector", "")).strip().lower()
-
-        if is_public and sector == "manufacturing":
-            X4_pub = financials["marketCapitalization"] / tl
-            z = 1.2*X1 + 1.4*X2 + 3.3*X3 + 0.6*X4_pub + 1.0*X5
-        elif is_public and sector != "manufacturing":
-            X4_priv = financials["totalEquity"] / tl
-            z = 6.56*X1 + 3.26*X2 + 6.72*X3 + 1.05*X4_priv
+        variant = altman_variant(financials)
+        if variant == "Z":
+            X4 = financials["marketCapitalization"] / tl
+            z = 1.2*X1 + 1.4*X2 + 3.3*X3 + 0.6*X4 + 1.0*X5
+        elif variant == "Z1":
+            X4 = financials["totalEquity"] / tl
+            z = 0.717*X1 + 0.847*X2 + 3.107*X3 + 0.420*X4 + 0.998*X5
         else:
-            X4_priv = financials["totalEquity"] / tl
-            z = 0.717*X1 + 0.847*X2 + 3.107*X3 + 0.420*X4_priv + 0.998*X5
+            X4 = financials["totalEquity"] / tl
+            z = 6.56*X1 + 3.26*X2 + 6.72*X3 + 1.05*X4
 
         return _round_or_na(z)
     except (ZeroDivisionError, KeyError, TypeError):
@@ -235,6 +256,29 @@ def calculate_ohlson_oscore(financials):
         return _round_or_na(O)
     except (ZeroDivisionError, KeyError, TypeError, ValueError):
         return 'N/A'
+
+def zmijewski_probability(x_score):
+    """Zmijewski (1984) is a probit model: P(distress) = Φ(X)."""
+    try:
+        x = float(x_score)
+    except (TypeError, ValueError):
+        return None
+    if not math.isfinite(x):
+        return None
+    return 0.5 * (1.0 + math.erf(x / math.sqrt(2.0)))
+
+
+def ohlson_probability(o_score):
+    """Ohlson (1980) is a logit model: P(bankruptcy) = 1 / (1 + e^-O)."""
+    try:
+        o = float(o_score)
+    except (TypeError, ValueError):
+        return None
+    if not math.isfinite(o):
+        return None
+    if o < -700:
+        return 0.0
+    return 1.0 / (1.0 + math.exp(-o))
 
 # --- ESG ---
 

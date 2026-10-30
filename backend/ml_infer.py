@@ -11,11 +11,47 @@ from joblib import load
 HERE = os.path.dirname(__file__)
 MODEL_PATH_DEFAULT = os.path.join(HERE, "models", "vecthor_best.joblib")
 
-# hack per far trovare gli oggetti picklati (_feat_eng, _feat_names_out, SafeImputer)
+import threading
+from functools import lru_cache
+
+# The model was pickled from a script run as __main__, so the custom objects
+# (_feat_eng, _feat_names_out, SafeImputer) must be resolvable there when unpickling.
 import train_vecthor_model
 sys.modules["__main__"]._feat_eng = train_vecthor_model._feat_eng
 sys.modules["__main__"]._feat_names_out = train_vecthor_model._feat_names_out
 sys.modules["__main__"].SafeImputer = train_vecthor_model.SafeImputer
+
+_LOAD_LOCK = threading.Lock()
+
+# Population the Vecthor model was trained on (SEC filings of US-listed companies).
+TRAINING_DOMAIN = "US-listed companies (SEC filings), label: bankruptcy within 12 months"
+
+
+@lru_cache(maxsize=4)
+def _load_model_cached(model_path: str) -> Dict[str, Any]:
+    with _LOAD_LOCK:
+        return load(model_path)
+
+
+def get_model(model_path: str = MODEL_PATH_DEFAULT) -> Dict[str, Any]:
+    """Loads the joblib bundle once per process (it is ~19 MB)."""
+    return _load_model_cached(os.path.abspath(model_path))
+
+
+def model_meta(model_path: str = MODEL_PATH_DEFAULT) -> Dict[str, Any]:
+    return get_model(model_path).get("meta", {})
+
+
+def is_calibrated(model_path: str = MODEL_PATH_DEFAULT) -> bool:
+    name = str(model_meta(model_path).get("model", ""))
+    return "cal" in name.lower()
+
+
+def vecthor_in_domain(financials: Dict[str, Any]) -> bool:
+    """True when the company resembles the training population (US, publicly listed).
+    For other companies (e.g. Italian SMEs) the index is shown as experimental only."""
+    country = str(financials.get("country") or "").strip().lower()
+    return country == "usa" and _bool01(financials.get("isPubliclyListed")) == 1.0
 
 # colonne base attese dal modello
 FEATURE_COLUMNS: List[str] = [
@@ -79,7 +115,7 @@ def _score_with_pipe(pipe, X: pd.DataFrame) -> Dict[str, Any]:
     return out
 
 def score_from_financial_dict(model_path: str, financials: Dict[str, Any]) -> Dict[str, Any]:
-    obj = load(model_path)
+    obj = get_model(model_path)
     pipe = obj["pipeline"]
     meta = obj.get("meta", {})
     X = _coerce_row(financials)
@@ -88,7 +124,7 @@ def score_from_financial_dict(model_path: str, financials: Dict[str, Any]) -> Di
     return out
 
 def score_from_csv_row(model_path: str, csv_path: str, cik: int, year: int) -> Dict[str, Any]:
-    obj = load(model_path)
+    obj = get_model(model_path)
     pipe = obj["pipeline"]
     meta = obj.get("meta", {})
     df = pd.read_csv(csv_path, low_memory=False)
