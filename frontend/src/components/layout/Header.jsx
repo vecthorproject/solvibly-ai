@@ -1,5 +1,6 @@
 import styled from '@emotion/styled';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../../auth/context.js';
 import solviblyLogo from '../../graphics/Header/Logo/logosvg.svg';
 
 // --- STYLED COMPONENTS ---
@@ -67,6 +68,11 @@ const TitleContainer = styled.div`
     left: 50vw;              /* <— era 50% */
     transform: translateX(-50%);
   }
+
+  /* Phones: the logo stays, the title would overlap the links */
+  @media (max-width: 640px) {
+    display: none;
+  }
 `;
 
 const TitleImage = styled.h1`
@@ -130,11 +136,16 @@ const OtherPagesSymbol = styled.svg`
     width: 1.2rem;
     height: 1.2rem;
   }
+
+  @media (max-width: 640px) {
+    display: none;
+  }
 `;
 
 // --- MAIN COMPONENT ---
 
 function Header() {
+  const { user, archive } = useAuth();
   return (
     <HeaderContainer>
       <LogoContainer>
@@ -152,8 +163,11 @@ function Header() {
       </TitleContainer>
 
       <LinksContainer>
-        <AnchorLink to="/help">Help</AnchorLink>
-        <AnchorLink to="/pricing">Pricing</AnchorLink>
+        <AnchorLink to="/help">Guida</AnchorLink>
+        <AnchorLink to="/pricing">Prezzi</AnchorLink>
+        {archive.enabled && (user
+          ? <AnchorLink to="/clienti">Clienti</AnchorLink>
+          : <AnchorLink to="/accedi">Accedi</AnchorLink>)}
         <OtherPagesSymbol viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
           <circle cx="5" cy="12" r="1.5" />
           <circle cx="12" cy="12" r="1.5" />
