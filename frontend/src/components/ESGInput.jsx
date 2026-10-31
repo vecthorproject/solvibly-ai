@@ -130,7 +130,7 @@ function EsgInput({ onChange }) {
 
   return (
     <EsgWrapper compact={isCompact}>
-      <QuestionLabel>Does the company have an official ESG rating?</QuestionLabel>
+      <QuestionLabel>L&apos;impresa ha un rating ESG ufficiale?</QuestionLabel>
 
       <OptionsContainer compact={isCompact}>
         <StyledRadioButton checked={hasOfficialRating === 'yes'}>
@@ -140,7 +140,7 @@ function EsgInput({ onChange }) {
             value="yes"
             onChange={() => setHasOfficialRating('yes')}
           />
-          Yes
+          Sì
         </StyledRadioButton>
 
         <StyledRadioButton checked={hasOfficialRating === 'no'}>
@@ -160,20 +160,20 @@ function EsgInput({ onChange }) {
             value="skip"
             onChange={() => setHasOfficialRating('skip')}
           />
-          Skip
+          Salta
         </StyledRadioButton>
       </OptionsContainer>
 
       {hasOfficialRating === 'yes' && (
         <InputSection>
           <label style={{ fontWeight:'500', fontFamily:'system-ui, sans-serif', margin:'0 0 0.8rem 0' }}>
-            OFFICIAL ESG RATING
+            RATING ESG UFFICIALE
           </label>
           <StyledSelect
             value={officialRating}
             onChange={(e) => setOfficialRating(e.target.value)}
           >
-            <option value="">-- Select Rating --</option>
+            <option value="">-- Seleziona il rating --</option>
             {ratingOptions.map(r => (
               <option key={r} value={r}>{r}</option>
             ))}
@@ -196,7 +196,7 @@ function EsgInput({ onChange }) {
 
           <ScoreGrid>
             <ScoreRow>
-              <ScoreLabel>Environmental (E)</ScoreLabel>
+              <ScoreLabel>Ambiente (E)</ScoreLabel>
               <ScoreInput
                 type="range" min="1" max="5"
                 value={scores.E}
@@ -206,7 +206,7 @@ function EsgInput({ onChange }) {
             </ScoreRow>
 
             <ScoreRow>
-              <ScoreLabel>Social (S)</ScoreLabel>
+              <ScoreLabel>Sociale (S)</ScoreLabel>
               <ScoreInput
                 type="range" min="1" max="5"
                 value={scores.S}

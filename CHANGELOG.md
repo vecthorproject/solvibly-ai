@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.4.0 — Italian interface, year comparison, client archive
+
+### Added
+- Comparison with the previous year when the XBRL contains it: revenue, operating result, net income,
+  total assets, equity, debts, tax and social-security debts, current ratio, debt/equity, ROE and ROS with
+  the change, plus the five CNDCEC indices for both years.
+- Client archive (optional): registration and login (scrypt password hashes, signed tokens valid 30 days,
+  login rate limit), clients matched by tax code or by name, saved analyses with editable notes, per-client
+  trend across years, deletion of analyses, clients and the whole account. Only computed results are stored.
+  Postgres via `DATABASE_URL` (e.g. Neon), SQLite locally; disabled on Render when no database is set.
+- Draft privacy policy (`/privacy`) and terms of use (`/termini`), describing the actual data flows. To be
+  completed and reviewed by a lawyer.
+- `VITE_API_URL` so the frontend can be deployed on a different domain from the backend.
+- 404 page.
+
+### Changed
+- The whole interface and the API error messages are in Italian.
+- The results page was rewritten: clearer sections, "Save to archive" next to "Print / Save PDF".
+
 ## 0.3.0 — XBRL import
 
 ### Added

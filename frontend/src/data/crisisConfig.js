@@ -132,3 +132,13 @@ export const overallMeta = {
   green_partial: { color: '#DDF7EC', border: '#15a497' },
   grey: { color: '#EDF2F7', border: '#A0AEC0' },
 };
+
+export const levelLabels = {
+  red: 'Segnali di crisi',
+  yellow: 'Da approfondire',
+  green: 'Nessun segnale',
+  green_partial: 'Nessun segnale (verifica incompleta)',
+  grey: 'Dati insufficienti',
+};
+
+export const sourceLabels = { xbrl: 'XBRL', pdf: 'PDF (AI)', manual: 'Manuale' };

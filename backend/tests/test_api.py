@@ -116,3 +116,12 @@ def test_missing_inputs_are_reported(client):
     assert "operatingCashFlow" in d["inputsDefaulted"]
     assert d["inputsUsed"]["operatingCashFlow"] is None
     assert "marketCapitalization" not in d["inputsUsed"]  # private company
+
+
+def test_upload_too_large_has_italian_message(monkeypatch):
+    monkeypatch.setenv("MAX_UPLOAD_MB", "1")
+    c = create_app().test_client()
+    big = io.BytesIO(b"0" * (1024 * 1024 + 10))
+    r = c.post("/api/upload", data={"file": (big, "big.pdf")}, content_type="multipart/form-data")
+    assert r.status_code == 413
+    assert r.get_json()["error"] == "File troppo grande (massimo 1 MB in totale)."

@@ -210,11 +210,11 @@ const LegendDot = styled.div`
 `;
 
 const valueZoneColors = {
-    'Good': '#B7F0D8',
-    'Adequate': '#FAF3B6',
-    'Critical': '#F8B4B4',
-    'Crisis Zone': '#F8B4B4',
-    'Safe Zone': '#B7F0D8',
+    'Buono': '#B7F0D8',
+    'Adeguato': '#FAF3B6',
+    'Critico': '#F8B4B4',
+    'Zona di crisi': '#F8B4B4',
+    'Zona sicura': '#B7F0D8',
     'N/A': '#E2E8F0'
 };
 
@@ -234,7 +234,7 @@ function classifyValue(value, config, ratioKey) {
     if (typeof value !== 'number' || !config || !config.thresholds) return 'N/A';
 
     if (ratioKey === 'dscr') {
-        return value >= 1.0 ? 'Safe Zone' : 'Crisis Zone';
+        return value >= 1.0 ? 'Zona sicura' : 'Zona di crisi';
     }
 
     const [t1, t2] = config.thresholds;
@@ -242,15 +242,15 @@ function classifyValue(value, config, ratioKey) {
     const upper = Math.max(t1, t2);
 
     if (config.logic === 'higher') {
-        if (value < lower) return 'Critical';
-        if (value > upper) return 'Good';
-        return 'Adequate';
+        if (value < lower) return 'Critico';
+        if (value > upper) return 'Buono';
+        return 'Adeguato';
     }
 
     if (config.logic === 'lower') {
-        if (value > upper) return 'Critical';
-        if (value < lower) return 'Good';
-        return 'Adequate';
+        if (value > upper) return 'Critico';
+        if (value < lower) return 'Buono';
+        return 'Adeguato';
     }
 
     return 'N/A';
@@ -324,7 +324,7 @@ function RatioDisplay({ title, value, ratioKey, country, industrySector, dataTyp
 
     const gaugeLabels = config?.labels && isBinary
       ? (config.logic === 'lower' ? [config.labels[2], config.labels[0]] : [config.labels[0], config.labels[2]])
-      : (config?.logic === 'lower' ? ['Good', 'Adequate', 'Critical'] : ['Critical', 'Adequate', 'Good']);
+      : (config?.logic === 'lower' ? ['Buono', 'Adeguato', 'Critico'] : ['Critico', 'Adeguato', 'Buono']);
       
     const thresholdLabels = config?.logic === 'lower' ? [t2, t1] : [t1, t2];
 
@@ -368,15 +368,15 @@ function RatioDisplay({ title, value, ratioKey, country, industrySector, dataTyp
                 </>
             )}
 
-            <SubLabelText style={{ margin:'3rem 0 1rem 0' }}>Risk Zone:
+            <SubLabelText style={{ margin:'3rem 0 1rem 0' }}>Zona di rischio:
               <RiskValueZone zone={valueZone}>{valueZone || 'N/A'}</RiskValueZone>
             </SubLabelText>
 
             {isNormative ? (
-                <SubLabelText style={{ margin:'1rem 0 1rem 0' }}>Normative Reference Value: <strong style={{ margin:'0', fontWeight:'500', fontSize:"0.95rem" }}>&gt; 1.0x</strong></SubLabelText>
+                <SubLabelText style={{ margin:'1rem 0 1rem 0' }}>Valore di riferimento normativo: <strong style={{ margin:'0', fontWeight:'500', fontSize:"0.95rem" }}>&gt; 1.0x</strong></SubLabelText>
             ) : (
                 <SubLabelText style={{ margin:'1rem 0 1rem 0' }}>
-                  Industry Standard: 
+                  Media di settore: 
                   <strong style={{ margin:'0', marginLeft: '0.2rem', fontWeight:'500', fontSize:"0.95rem" }}>
                     {typeof benchmark === 'number'
                       ? ['roa','roe','roi','ros','debtToAssetsRatio'].includes(ratioKey) 
@@ -386,19 +386,19 @@ function RatioDisplay({ title, value, ratioKey, country, industrySector, dataTyp
                     }
                   </strong>
                   <span style={{ marginLeft: '0.5rem', fontSize: '0.75rem', fontStyle: 'italic' }}>
-                    {normalizedCountry === 'Italy' ? '(valori indicativi di settore)' : '(indicative sector values)'}
+                    (valori indicativi)
                   </span>
                 </SubLabelText>
             )}
 
             <LearnMoreBtn onClick={() => setExpandedSection(!expandedSection)}>
-                {expandedSection ? 'Show Less' : 'Learn More'}
+                {expandedSection ? 'Nascondi' : 'Approfondisci'}
             </LearnMoreBtn>
             
             { expandedSection && details && (
                 <DetailsWrapper>
-                    <p><strong>Significance:</strong> {details.significance}</p>
-                    <p><strong>Notes:</strong> {details.notes}</p>
+                    <p><strong>Significato:</strong> {details.significance}</p>
+                    <p><strong>Note:</strong> {details.notes}</p>
                 </DetailsWrapper>
             )}
 
@@ -406,10 +406,10 @@ function RatioDisplay({ title, value, ratioKey, country, industrySector, dataTyp
               {(() => {
                 const labelsNormal = isBinary 
                   ? [gaugeLabels[0], gaugeLabels[1]] 
-                  : ['Critical', 'Adequate', 'Good'];
+                  : ['Critico', 'Adeguato', 'Buono'];
                 const labelsLower = isBinary
                   ? [gaugeLabels[1], gaugeLabels[0]]
-                  : ['Good', 'Adequate', 'Critical'];
+                  : ['Buono', 'Adeguato', 'Critico'];
                 const colorsNormal = isBinary
                   ? ['#F8B4B4', '#B7F0D8']
                   : ['#F8B4B4', '#FAF3B6', '#B7F0D8'];

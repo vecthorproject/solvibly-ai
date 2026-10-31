@@ -1,4 +1,5 @@
 import styled from '@emotion/styled';
+import { Link } from 'react-router-dom';
 import solviblyLogo from '../../graphics/Footer/Logo/logowhitesvg.svg';
 import iconLN from '../../graphics/Footer/Various/Social Icons/LN_Icon.svg';
 import iconFB from '../../graphics/Footer/Various/Social Icons/FB_Icon.svg';
@@ -97,13 +98,13 @@ function Footer() {
 
       <FooterLeft>
         <FooterLogo src={solviblyLogo} alt="Solvibly logo" />
-        <FooterInfo>© 2025 Solvibly AI</FooterInfo>
+        <FooterInfo>© {new Date().getFullYear()} Solvibly AI</FooterInfo>
       </FooterLeft>
 
       <FooterRight>
         <FooterLinksContainer>
-          <FooterLinks>Privacy policy</FooterLinks>
-          <FooterLinks>Terms of use</FooterLinks>
+          <FooterLinks as={Link} to="/privacy">Privacy</FooterLinks>
+          <FooterLinks as={Link} to="/termini">Termini d&apos;uso</FooterLinks>
         </FooterLinksContainer>
         <FooterSocialIconsContainer>
           <SocialIconWrapper>

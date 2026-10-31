@@ -160,50 +160,6 @@ const ErrorMessage = styled.div`
 // --- LABEL & TITLE DICTIONARY ---
 
 const labels = {
-  USA: {
-    title_general: 'General & Market Data',
-    title_incomeStatement: 'Income Statement Data',
-    title_balanceSheet: 'Balance Sheet Data',
-    title_cashFlow: 'Cash Flow Statement Data',
-    companyName: 'Company Name',
-    fiscalYear: 'Fiscal Year',
-    country: 'Country of Operation',
-    industrySector: 'Industry / Sector',
-    selectSector: '---',
-    isPubliclyListed: 'Is the company publicly listed?',
-    marketCapitalization: 'Market Capitalization',
-    revenue: 'Revenue',
-    ebit: 'EBIT',
-    netIncome: 'Net Income',
-    depreciationAndAmortization: 'Depreciation & Amortization',
-    interestExpense: 'Interest Expense',
-    totalCurrentAssets: 'Total Current Assets',
-    inventories: 'Inventories',
-    totalNonCurrentAssets: 'Total Non-Current Assets',
-    tangibleFixedAssets: 'Tangible Fixed Assets',
-    totalCurrentLiabilities: 'Total Current Liabilities',
-    totalNonCurrentLiabilities: 'Total Non-Current Liabilities',
-    totalEquity: "Total Stockholders' Equity",
-    retainedEarnings: 'Retained Earnings',
-    operatingCashFlow: 'Operating Cash Flow',
-
-    // --- Ohlson section ---
-    title_ohlsonOscore: 'Advanced Analysis (Ohlson O-Score)',
-    subtitle_ohlsonOscore: 'Also enable Ohlson O-Score analysis?',
-    netIncome_t_minus_1: 'Net Income',
-
-    // --- DSCR section ---
-    title_dscr: 'Prospective Data (DSCR)',
-    dscrCashFlow: 'Expected Operating Cash Flow',
-    dscrDebtService: 'Debt Service Due',
-    // --- extra labels for parentheses ---
-    label_previousYear: '(previous year)',
-    label_sixMonths: '(6 months)',
-
-    // --- ESG section ---
-    title_esg: 'Sustainability & Governance (ESG)',
-  },
-
   Italy: {
     title_general: 'Dati Anagrafici e di Mercato',
     title_incomeStatement: 'Dati dal Conto Economico',
@@ -349,7 +305,7 @@ function InsertYourDataForm() {
     });
   };
   
-  const currentLabels = labels[formData.country];
+  const currentLabels = labels.Italy;
 
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 11 }, (_, i) => currentYear - i);
@@ -366,7 +322,7 @@ function InsertYourDataForm() {
       navigate('/results', { state: { results: response.data } });
     } catch (error) {
       console.error("Sending error:", error);
-      setFormError(error?.response?.data?.error || "An error occurred while sending the data.");
+      setFormError(error?.response?.data?.error || "Si è verificato un errore durante l'invio dei dati.");
       setIsLoading(false);
     }
   };
@@ -388,7 +344,7 @@ function InsertYourDataForm() {
         <div css={formRowStyle}>
           <StyledLabel htmlFor="country">{currentLabels.country}</StyledLabel>
           <StyledSelect id="country" name="country" required autoComplete="off" value={formData.country} onChange={handleChange}>
-            <option value="USA">United States</option>
+            <option value="USA">Stati Uniti</option>
             <option value="Italy">Italia</option>
           </StyledSelect>
         </div>
@@ -557,7 +513,7 @@ function InsertYourDataForm() {
         <>
         <StyledTitle>
           {currentLabels.title_dscr}
-          <OptionalBadgeForm>*Optional</OptionalBadgeForm>
+          <OptionalBadgeForm>*Facoltativo</OptionalBadgeForm>
         </StyledTitle>
 
           <div css={formRowStyle}>
@@ -595,13 +551,13 @@ function InsertYourDataForm() {
         )}
 
           {/* --- SECTION 7: ESG (OPTIONAL) --- */}
-        <StyledTitle style={{ marginBottom:'0.5rem' }}>{currentLabels.title_esg}<OptionalBadgeForm>*Optional</OptionalBadgeForm></StyledTitle>
+        <StyledTitle style={{ marginBottom:'0.5rem' }}>{currentLabels.title_esg}<OptionalBadgeForm>*Facoltativo</OptionalBadgeForm></StyledTitle>
         <EsgInput onChange={handleEsgChange} />
 
         {/* --- SECTION 8: SUBMIT --- */}
         <ButtonWrapper>
           <StyledButton type="submit" disabled={isLoading}>
-            {isLoading ? "Calculating..." : "Calculate Risk"}
+            {isLoading ? "Calcolo in corso…" : "Calcola"}
           </StyledButton>
         </ButtonWrapper>
         {formError && <ErrorMessage visible={errorVisible}>{formError}</ErrorMessage>}

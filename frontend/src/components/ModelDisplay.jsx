@@ -313,7 +313,7 @@ function ModelDisplay({ title, value, modelKey, thresholdsOverride, subtitle }) 
         if (greyZoneWidth > 18) { 
             middleLabelContent = { text: gaugeLabels[1], abbreviated: false };
         } else { 
-            middleLabelContent = { text: 'GZ', abbreviated: true };
+            middleLabelContent = { text: 'ZG', abbreviated: true };
         }
     }
 
@@ -360,21 +360,21 @@ function ModelDisplay({ title, value, modelKey, thresholdsOverride, subtitle }) 
                 </>
             )}
 
-            <SubLabelText>Risk Zone:
+            <SubLabelText>Zona di rischio:
               <RiskZoneValue tone={zoneTone}>{riskZone || 'N/A'}</RiskZoneValue>
             </SubLabelText>
 
             <LearnMoreBtn onClick={() => setExpandedSection(!expandedSection)}>
-                {expandedSection ? 'Show Less' : 'Learn More'}
+                {expandedSection ? 'Nascondi' : 'Approfondisci'}
             </LearnMoreBtn>
             
             { expandedSection && (
                 <DetailsWrapper>
                     <p>
-                        <strong>Significance:</strong> {details.significance}
+                        <strong>Significato:</strong> {details.significance}
                     </p>
                     <p>
-                        <strong>Notes:</strong> {details.notes}
+                        <strong>Note:</strong> {details.notes}
                     </p>
                 </DetailsWrapper>
             )}

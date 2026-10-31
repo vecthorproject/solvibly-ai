@@ -199,9 +199,9 @@ export default function PopupPromptModal({
   const onDropPrev = (acceptedFiles, rejectedFiles) => {
     if (rejectedFiles?.length) {
       const code = rejectedFiles[0]?.errors?.[0]?.code;
-      if (code === "file-invalid-type") setError("Only PDF files are allowed.");
-      else if (code === "file-too-large") setError("File too large (max 10MB).");
-      else setError("File not accepted.");
+      if (code === "file-invalid-type") setError("Sono ammessi solo file PDF.");
+      else if (code === "file-too-large") setError("File troppo grande (massimo 10 MB).");
+      else setError("File non accettato.");
       setPreviousPdfFile(null);
       return;
     }
@@ -223,7 +223,7 @@ export default function PopupPromptModal({
     const hasFile = mode === "file" && previousPdfFile;
 
     if (!hasText && !hasFile) {
-      setError("Please type Net Income (previous year) or upload the previous-year financial statement (PDF).");
+      setError("Inserisci l'utile dell'esercizio precedente oppure carica il bilancio dell'anno precedente (PDF).");
       return;
     }
 
@@ -244,21 +244,21 @@ export default function PopupPromptModal({
   return (
     <Backdrop open={isOpen} aria-hidden={!isOpen}>
       <Modal role="dialog" aria-modal="true" aria-labelledby="ohlson-title">
-        <Title id="ohlson-title">Also enable Ohlson O-Score analysis?</Title>
+        <Title id="ohlson-title">Calcolare anche l&apos;Ohlson O-Score?</Title>
         <Subtitle>
-          Provide <strong>Net Income (previous year)</strong> or upload the <strong>previous-year financial statement (PDF)</strong>.
+          Serve l&apos;<strong>utile dell&apos;esercizio precedente</strong>: inseriscilo oppure carica il <strong>bilancio dell&apos;anno precedente (PDF)</strong>. Se il bilancio attuale riporta la colonna dell&apos;anno precedente, puoi saltare: viene letto da lì.
           You can also skip this step.
         </Subtitle>
 
         {mode === "text" ? (
           <>
             <Row>
-              <Label htmlFor="ni_tm1">Net Income (previous year)</Label>
+              <Label htmlFor="ni_tm1">Utile (perdita) dell&apos;esercizio precedente</Label>
               <Input
                 id="ni_tm1"
                 type="number"
                 inputMode="decimal"
-                placeholder="e.g., 1250000"
+                placeholder="es. 1250000"
                 value={netIncomeTM1}
                 onChange={(e) => setNetIncomeTM1(e.target.value)}
                 disabled={isLoading}
@@ -271,9 +271,9 @@ export default function PopupPromptModal({
               type="button"
               onClick={() => { setMode("file"); setNetIncomeTM1(""); setError(""); }}
               disabled={isLoading}
-              aria-label="Switch to upload PDF mode"
+              aria-label="Passa al caricamento del PDF"
             >
-              or upload previous-year PDF
+              oppure carica il PDF dell'anno precedente
             </InlineLink>
           </>
         ) : (
@@ -282,11 +282,11 @@ export default function PopupPromptModal({
               {...getRootProps()}
               isActive={isDragActive}
               aria-disabled={isLoading}
-              aria-label="Upload previous-year PDF"
+              aria-label="Carica il PDF dell'anno precedente"
             >
               <input {...getInputProps()} />
               {!previousPdfFile && (
-                <div>Drag a PDF here (max 10MB) or click to select</div>
+                <div>Trascina qui un PDF (massimo 10 MB) o clicca per sceglierlo</div>
               )}
               {previousPdfFile && (
                 <FilePill>
@@ -294,9 +294,9 @@ export default function PopupPromptModal({
                   <RemoveBtn
                     type="button"
                     onClick={(e) => { e.stopPropagation(); setPreviousPdfFile(null); }}
-                    aria-label="Remove uploaded file"
+                    aria-label="Rimuovi il file"
                   >
-                    Remove
+                    Rimuovi
                   </RemoveBtn>
                 </FilePill>
               )}
@@ -305,9 +305,9 @@ export default function PopupPromptModal({
               type="button"
               onClick={() => { setMode("text"); setPreviousPdfFile(null); setError(""); }}
               disabled={isLoading}
-              aria-label="Switch to type mode"
+              aria-label="Passa all'inserimento manuale"
             >
-              or type Net Income (previous year)
+              oppure inserisci l'utile dell'anno precedente
             </InlineLink>
           </>
         )}
@@ -315,10 +315,10 @@ export default function PopupPromptModal({
         {error && <ErrorMsg role="alert">{error}</ErrorMsg>}
 
         <Footer>
-          <Btn onClick={onClose} disabled={isLoading}>Cancel</Btn>
-          <Btn onClick={handleSkip} disabled={isLoading}>Skip & Analyze</Btn>
+          <Btn onClick={onClose} disabled={isLoading}>Annulla</Btn>
+          <Btn onClick={handleSkip} disabled={isLoading}>Salta e analizza</Btn>
           <Btn variant="primary" onClick={handleConfirm} disabled={isLoading}>
-            {isLoading ? "Processing…" : "Confirm"}
+            {isLoading ? "Elaborazione…" : "Conferma"}
           </Btn>
         </Footer>
       </Modal>

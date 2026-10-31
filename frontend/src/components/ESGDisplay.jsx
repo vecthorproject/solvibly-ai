@@ -156,9 +156,9 @@ const Dot = styled.div`
 
 const ZoneChip = styled.strong`
   background-color: ${({ zone }) =>
-    zone === 'Good' ? '#B7F0D8'
-    : zone === 'Adequate' ? '#FAF3B6'
-    : zone === 'Critical' ? '#F8B4B4'
+    zone === 'Buono' ? '#B7F0D8'
+    : zone === 'Adeguato' ? '#FAF3B6'
+    : zone === 'Critico' ? '#F8B4B4'
     : '#E2E8F0'};
   margin: 0.25rem;
   padding: 0.15rem 0.30rem;
@@ -188,13 +188,13 @@ function classify(v, logic, [t1, t2]) {
   if (!isNum(v)) return 'N/A';
   const lo = Math.min(t1, t2), hi = Math.max(t1, t2);
   if (logic === 'higher') {
-    if (v < lo) return 'Critical';
-    if (v > hi) return 'Good';
-    return 'Adequate';
+    if (v < lo) return 'Critico';
+    if (v > hi) return 'Buono';
+    return 'Adeguato';
   }
-  if (v > hi) return 'Critical';
-  if (v < lo) return 'Good';
-  return 'Adequate';
+  if (v > hi) return 'Critico';
+  if (v < lo) return 'Buono';
+  return 'Adeguato';
 }
 
 // --- SMALL MINI-GAUGE FOR E,S,G ---
@@ -223,16 +223,16 @@ function MiniGauge({ label, value, scale=[1,5], thresholds=[3,4], logic='higher'
         <ColorBar stops={[s1, s2]} logic={logic} />
         {has && <Marker position={pos} />}
         <Labels>
-          <GaugeLabel position={l1}>Critical</GaugeLabel>
-          <GaugeLabel position={l2}>Adequate</GaugeLabel>
-          <GaugeLabel position={l3}>Good</GaugeLabel>
+          <GaugeLabel position={l1}>Critico</GaugeLabel>
+          <GaugeLabel position={l2}>Adeguato</GaugeLabel>
+          <GaugeLabel position={l3}>Buono</GaugeLabel>
         </Labels>
         <Thresholds>
           <ThresholdLabel position={s1}>{thresholds[0]}</ThresholdLabel>
           <ThresholdLabel position={s2}>{thresholds[1]}</ThresholdLabel>
         </Thresholds>
       </GaugeWrapper>
-      <Sub>Risk Zone: <ZoneChip zone={zone}>{zone}</ZoneChip></Sub>
+      <Sub>Zona di rischio: <ZoneChip zone={zone}>{zone}</ZoneChip></Sub>
     </div>
   );
 }
@@ -261,12 +261,12 @@ export default function EsgDisplay({
     <GenBlock>
       {source === 'rating' && rating && (
         <>
-          <Title>Official ESG Rating</Title>
+          <Title>Rating ESG ufficiale</Title>
           <RatingPill>{rating}</RatingPill>
         </>
       )}
 
-      <Title style={{ marginTop: '0.25rem' }}>ESG Overall</Title>
+      <Title style={{ marginTop: '0.25rem' }}>Punteggio ESG complessivo</Title>
       <GaugeWrapper>
         {isNum(overall) && (
           <ValueBubble position={pos}>{String(Math.round(Number(overall)))}</ValueBubble>
@@ -274,9 +274,9 @@ export default function EsgDisplay({
         <ColorBar stops={[s1, s2]} logic={logic} />
         {isNum(overall) && <Marker position={pos} />}
         <Labels>
-          <GaugeLabel position={l1}>Critical</GaugeLabel>
-          <GaugeLabel position={l2}>Adequate</GaugeLabel>
-          <GaugeLabel position={l3}>Good</GaugeLabel>
+          <GaugeLabel position={l1}>Critico</GaugeLabel>
+          <GaugeLabel position={l2}>Adeguato</GaugeLabel>
+          <GaugeLabel position={l3}>Buono</GaugeLabel>
         </Labels>
         <Thresholds>
           <ThresholdLabel position={s1}>{overallCfg.thresholds[0]}</ThresholdLabel>
@@ -284,12 +284,12 @@ export default function EsgDisplay({
         </Thresholds>
       </GaugeWrapper>
 
-      <Sub>Risk Zone: <ZoneChip zone={overallZone}>{overallZone}</ZoneChip></Sub>
+      <Sub>Zona di rischio: <ZoneChip zone={overallZone}>{overallZone}</ZoneChip></Sub>
 
       {source === 'sliders' && (
         <>
-          <MiniGauge label="Environmental (1–5)" value={scoreE} />
-          <MiniGauge label="Social (1–5)"        value={scoreS} />
+          <MiniGauge label="Ambiente (1–5)" value={scoreE} />
+          <MiniGauge label="Sociale (1–5)"        value={scoreS} />
           <MiniGauge label="Governance (1–5)"    value={scoreG} />
         </>
       )}

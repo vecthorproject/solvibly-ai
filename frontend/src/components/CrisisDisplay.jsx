@@ -1,5 +1,4 @@
 import styled from '@emotion/styled';
-import { useState } from 'react';
 import { overallMeta, statusMeta } from '../data/crisisConfig.js';
 
 // --- STYLED COMPONENTS ---
@@ -176,8 +175,7 @@ function CheckCard({ check }) {
 
 // --- MAIN COMPONENT ---
 
-function CrisisDisplay({ assessment, companyName, fiscalYear }) {
-  const [notes, setNotes] = useState('');
+function CrisisDisplay({ assessment, companyName, fiscalYear, notes = '', onNotesChange }) {
   if (!assessment || !assessment.applicable) return null;
 
   const { overall, equity, dscr, cndcec, signals, practicalTest, missingData, references, disclaimer } = assessment;
@@ -297,7 +295,7 @@ function CrisisDisplay({ assessment, companyName, fiscalYear }) {
         <NotesArea
           className="no-print"
           value={notes}
-          onChange={e => setNotes(e.target.value)}
+          onChange={e => onNotesChange?.(e.target.value)}
           placeholder="Valutazioni, azioni proposte, documenti esaminati… (vengono incluse nella stampa)"
           aria-label="Note del professionista"
         />
