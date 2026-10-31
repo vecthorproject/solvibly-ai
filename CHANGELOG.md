@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.3.0 — XBRL import
+
+### Added
+- Upload of the Italian financial statement in XBRL as filed with the Registro Imprese (taxonomy itcc-ci,
+  PCI 2018-11-04): plain `.xbrl`/`.xml`, digitally signed `.p7m` (DER or base64) and `.zip`. Values are read
+  from the tagged facts, without AI and without an API key, for the current and the previous year
+  (ordinary, abridged and micro schemes).
+- From the XBRL data: company name, fiscal year, previous-year net income (Ohlson O-Score without a second
+  document), ATECO code → industry sector and CNDCEC sector group, legal form → AdER threshold. Choices made
+  by the user in the form take precedence.
+- When a filing has no within/beyond-one-year split of debts, all debts are treated as short-term and a
+  data-quality note says so.
+- XML is parsed with `defusedxml` (entity expansion and external entities are rejected).
+
 ## 0.2.0 — Crisis checks (CCII) and fixes
 
 ### Added

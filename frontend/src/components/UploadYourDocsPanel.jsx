@@ -343,6 +343,16 @@ const ProgressText = styled.p`
   text-align: center;
 `;
 
+const XbrlHint = styled.p`
+  color: #4a5568;
+  opacity: 0.85;
+  text-align: center;
+  font-family: system-ui, sans-serif;
+  font-size: 0.75rem;
+  margin: 0.4rem auto 0;
+  max-width: 26rem;
+`;
+
 const OptionalBadgePanel = styled.span`
   font-size: 0.79rem;
   font-weight: 400;
@@ -353,6 +363,10 @@ const OptionalBadgePanel = styled.span`
 `;
 
 // --- DATA PER LE SELEZIONI ---
+
+// Italian XBRL filings: plain, digitally signed (.p7m) or zipped. They are read without AI.
+const XBRL_EXTENSIONS = ['.xbrl', '.xml', '.p7m', '.zip'];
+const isXbrlFile = (file) => !!file && XBRL_EXTENSIONS.some(ext => file.name.toLowerCase().endsWith(ext));
 
 const countryChoice = [{value: "usa", label: "USA"}, {value: "italy", label: "Italia"}]
 const companyType = [{value: "public", label: "Public"}, {value: "private", label: "Private"}]
@@ -450,19 +464,26 @@ function UploadYourDocsPanel() {
       if (firstError.code === 'file-too-large') {
         setUploadError(`File is too large. Maximum file size is 10MB.`);
       } else {
-        setUploadError("File type not supported. Please upload a valid PDF document.");
+        setUploadError("File type not supported. Upload a PDF or an XBRL file (.xbrl, .xml, signed .p7m or .zip).");
       }
       setUploadedFile(null);
     } else {
       setUploadError(null);
       setErrorVisible(false);
       setUploadedFile(acceptedFiles[0]);
+      // XBRL filings are Italian statements: show the Italian checks.
+      if (isXbrlFile(acceptedFiles[0])) setSelectedCountry('italy');
     }
   };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: {
-      'application/pdf': ['.pdf']
+      'application/pdf': ['.pdf'],
+      'application/xml': ['.xbrl', '.xml'],
+      'text/xml': ['.xml'],
+      'application/pkcs7-mime': ['.p7m'],
+      'application/zip': ['.zip'],
+      'application/octet-stream': ['.xbrl', '.p7m'],
     },
     onDrop,
     multiple: false,
@@ -586,11 +607,18 @@ function UploadYourDocsPanel() {
 
   const handleUpload = async () => {
     if (!uploadedFile) {
-      setUploadError("Please upload a PDF file to continue.");
+      setUploadError("Please upload a PDF or XBRL file to continue.");
+      return;
+    }
+    // The XBRL filing already contains the previous year: no need to ask for it.
+    if (isXbrlFile(uploadedFile)) {
+      performUpload(null);
       return;
     }
     setShowOhlsonPrompt(true);
   }
+
+  const uploadingXbrl = isXbrlFile(uploadedFile);
   
   const countryKey = selectedCountry === 'italy' ? 'Italy' : 'USA';
 
@@ -672,6 +700,7 @@ function UploadYourDocsPanel() {
                 value={crisisData}
                 onChange={setCrisisField}
                 industrySector={selectedSector}
+                sectorFromXbrl={isXbrlFile(uploadedFile)}
                 balanceSheetHint="Vengono lette dal bilancio quando presenti (nel bilancio abbreviato i debiti tributari e previdenziali sono spesso aggregati): compila solo per integrare o correggere."
               />
             </>
@@ -742,7 +771,17 @@ function UploadYourDocsPanel() {
                   />
                 </SquareDocContainer>
                 <label htmlFor="fileInput">
-                  <StyledSubText>Drag and drop your file here or click to browse...</StyledSubText>
+                  <StyledSubText>
+                    {selectedCountry === 'italy'
+                      ? 'Trascina qui il bilancio in PDF o XBRL (anche firmato .p7m), oppure clicca per sceglierlo…'
+                      : 'Drag and drop your PDF file here or click to browse...'}
+                  </StyledSubText>
+                  {selectedCountry === 'italy' && (
+                    <XbrlHint>
+                      Con il file XBRL depositato al Registro Imprese la lettura è istantanea e senza AI,
+                      e include l&apos;anno precedente e il codice ATECO.
+                    </XbrlHint>
+                  )}
                 </label>
               </>
             )}
@@ -772,7 +811,9 @@ function UploadYourDocsPanel() {
                     <ProgressBarFill progress={uploadProgress} />
                   </ProgressBarContainer>
                   <ProgressText aria-live="polite">
-                    {!isAnalyzing
+                    {uploadingXbrl
+                      ? 'Lettura del file XBRL e calcolo degli indicatori…'
+                      : !isAnalyzing
                       ? (selectedCountry === 'italy' ? 'Caricamento del documento…' : 'Uploading the document…')
                       : (selectedCountry === 'italy'
                           ? `Lettura delle pagine di bilancio ed estrazione delle voci con AI, poi calcolo degli indicatori — ${elapsed}s (di solito meno di un minuto)`
@@ -783,7 +824,9 @@ function UploadYourDocsPanel() {
 
               <ButtonWrapper>
                 <StyledButton type='button' onClick={handleUpload} disabled={isLoading || showOhlsonPrompt}>
-                    {isLoading ? (isAnalyzing ? 'Analyzing with AI...' : `Uploading... ${uploadProgress}%`) : 'Upload & Analyze'}
+                    {isLoading
+                      ? (uploadingXbrl ? 'Reading XBRL...' : isAnalyzing ? 'Analyzing with AI...' : `Uploading... ${uploadProgress}%`)
+                      : 'Upload & Analyze'}
                 </StyledButton>
               </ButtonWrapper>
           </LoadingFeedbackWrapper>

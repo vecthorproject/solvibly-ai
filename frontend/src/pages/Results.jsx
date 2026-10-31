@@ -390,7 +390,15 @@ function Results() {
       <NoticeBlock>
         <details>
           <summary>{isItaly ? 'Dati utilizzati per il calcolo' : 'Data used for the calculation'}</summary>
-          {extraction && (
+          {extraction?.mode === 'xbrl' && (
+            <p>
+              {isItaly ? 'Letti dal file XBRL depositato, senza AI' : 'Read from the filed XBRL document, without AI'}
+              {` (${isItaly ? 'tassonomia' : 'taxonomy'} ${extraction.taxonomy || 'n.d.'}; `}
+              {isItaly ? 'esercizio chiuso il' : 'period end'} {extraction.periodEnd}
+              {extraction.ateco ? `; ATECO ${extraction.ateco}` : ''}).
+            </p>
+          )}
+          {extraction && extraction.mode !== 'xbrl' && (
             <p>
               {isItaly ? 'Estratti con AI dal documento' : 'Extracted with AI from the document'}
               {` (${extraction.mode === 'pdf' ? (isItaly ? 'PDF scansionato' : 'scanned PDF') : (isItaly ? 'testo' : 'text')}; `}

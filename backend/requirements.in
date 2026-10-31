@@ -6,5 +6,8 @@ python-dotenv==1.1.1
 PyMuPDF==1.26.4
 pymupdf4llm==0.0.27
 anthropic==2.3.0
+# XBRL import: safe XML parsing and signed (.p7m) files
+defusedxml==0.7.1
+asn1crypto==1.5.1
 # Only used with AI_PROVIDER=gemini
 google-genai==1.43.0
