@@ -129,3 +129,22 @@ def test_upload_bad_xbrl_is_422(client):
     data = {"document": (io.BytesIO(b"<?xml version='1.0'?><root/>"), "bilancio.xbrl")}
     r = client.post("/api/upload", data=data, content_type="multipart/form-data")
     assert r.status_code == 422 and "XBRL" in r.get_json()["error"]
+
+
+def test_year_comparison_from_xbrl(client):
+    data = {"document": (io.BytesIO(build_instance("abridged")), "bilancio.xbrl")}
+    d = client.post("/api/upload", data=data, content_type="multipart/form-data").get_json()
+    yc = d["yearComparison"]
+    assert yc["previousFiscalYear"] == 2023 and yc["currentFiscalYear"] == 2024
+    rows = {r["key"]: r for r in yc["rows"]}
+    assert rows["revenue"]["previous"] == 5_200_000 and rows["revenue"]["current"] == 5_000_000
+    assert rows["revenue"]["changePct"] == pytest.approx(-3.8)
+    assert rows["totalEquity"]["better"] == "up"
+    assert any(i["id"] == "equityToDebt" and i["previous"] == 14.0 for i in yc["cndcecIndices"])
+    assert d["companyTaxCode"] == "01234567890"
+
+
+def test_manual_entry_has_no_year_comparison(client):
+    d = client.post("/api/predict", json={"country": "Italy", "revenue": 100, "totalCurrentAssets": 50,
+                                          "totalNonCurrentAssets": 50, "totalEquity": 40}).get_json()
+    assert d["yearComparison"] is None

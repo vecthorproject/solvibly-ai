@@ -220,10 +220,10 @@ def read_pdf(path: str, country: str) -> Dict[str, Any]:
     try:
         doc = pymupdf.open(path)
     except Exception as e:  # corrupted / not a PDF
-        raise ExtractionError("The file could not be opened as a PDF.") from e
+        raise ExtractionError("Il file non si apre come PDF.") from e
     try:
         if doc.needs_pass:
-            raise ExtractionError("The PDF is password protected.")
+            raise ExtractionError("Il PDF è protetto da password.")
         n = doc.page_count
         total_text = sum(len(doc.load_page(i).get_text("text").strip()) for i in range(min(n, 60)))
         if total_text < MIN_TEXT_CHARS:
@@ -268,9 +268,9 @@ def _parse_json(raw: str) -> Dict[str, Any]:
         except json.JSONDecodeError:
             data = None
         if data is None:
-            raise ExtractionError("The AI answer was not valid JSON.")
+            raise ExtractionError("La risposta dell'AI non è leggibile; riprova.")
     if not isinstance(data, dict):
-        raise ExtractionError("The AI answer was not a JSON object.")
+        raise ExtractionError("La risposta dell'AI non è leggibile; riprova.")
     return data
 
 
@@ -320,17 +320,17 @@ def _call_claude(prompt: str, content: Dict[str, Any], schema: Optional[Dict[str
             output_config=output_config,
         )
     except (anthropic.AuthenticationError, anthropic.PermissionDeniedError) as e:
-        raise AIServiceUnavailable("The Claude API key is not valid.") from e
+        raise AIServiceUnavailable("La chiave API di Claude non è valida.") from e
     except anthropic.RateLimitError as e:
-        raise ExtractionError("The AI service is busy, please retry in a minute.") from e
+        raise ExtractionError("Il servizio AI è occupato: riprova tra un minuto.") from e
     except anthropic.APIError as e:
         log.warning("Claude API error: %s", e)
-        raise ExtractionError("The AI service could not read the document.") from e
+        raise ExtractionError("Il servizio AI non è riuscito a leggere il documento.") from e
     stop = getattr(response, "stop_reason", None)
     if stop == "max_tokens":
-        raise ExtractionError("The AI answer was cut off; the document may be too long.")
+        raise ExtractionError("La risposta dell'AI si è interrotta: il documento potrebbe essere troppo lungo.")
     if stop == "refusal":
-        raise ExtractionError("The AI service declined to process the document.")
+        raise ExtractionError("Il servizio AI non ha elaborato il documento.")
     return _claude_response_text(response)
 
 
@@ -403,7 +403,7 @@ def extract_data_with_llm(content: Dict[str, Any], country: str, keys: Optional[
         raise
     except Exception as e:
         log.exception("AI extraction failed")
-        raise ExtractionError("AI data extraction failed.") from e
+        raise ExtractionError("Estrazione dei dati con AI non riuscita.") from e
 
     missing = set(data.pop("missing", None) or [])
     out: Dict[str, Any] = {}

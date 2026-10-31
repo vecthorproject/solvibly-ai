@@ -88,14 +88,14 @@ def _unwrap_p7m(data: bytes) -> bytes:
         try:
             raw = base64.b64decode(b"".join(data.split()), validate=False)
         except (binascii.Error, ValueError) as e:
-            raise XbrlError("The signed file could not be decoded.") from e
+            raise XbrlError("Il file firmato (.p7m) non si riesce a leggere.") from e
     try:
         info = cms.ContentInfo.load(raw)
         content = info["content"]["encap_content_info"]["content"].native
     except Exception as e:  # malformed CMS
-        raise XbrlError("The signed file could not be decoded.") from e
+        raise XbrlError("Il file firmato (.p7m) non si riesce a leggere.") from e
     if not content:
-        raise XbrlError("The signed file does not contain the statement.")
+        raise XbrlError("Il file firmato non contiene il bilancio XBRL.")
     # Files signed more than once (.p7m.p7m) wrap another signature.
     return _unwrap(content)
 
@@ -104,7 +104,7 @@ def _unwrap_zip(data: bytes) -> bytes:
     try:
         zf = zipfile.ZipFile(io.BytesIO(data))
     except zipfile.BadZipFile as e:
-        raise XbrlError("The ZIP archive could not be opened.") from e
+        raise XbrlError("L'archivio ZIP non si apre.") from e
     candidates = [i for i in zf.infolist() if re.search(r"\.(xbrl|xml|p7m)$", i.filename, re.I)]
     candidates.sort(key=lambda i: (not i.filename.lower().endswith(".xbrl"), i.filename))
     for info in candidates:
@@ -114,7 +114,7 @@ def _unwrap_zip(data: bytes) -> bytes:
             return _unwrap(zf.read(info))
         except XbrlError:
             continue
-    raise XbrlError("The ZIP archive does not contain an XBRL statement.")
+    raise XbrlError("L'archivio ZIP non contiene un bilancio XBRL.")
 
 
 def _unwrap(data: bytes) -> bytes:
@@ -355,21 +355,21 @@ def parse_xbrl(data: bytes) -> Dict[str, Any]:
     """Returns the same structure produced by the AI extraction (services.extract_data_with_llm),
     plus XBRL metadata under '_xbrl'."""
     if not data:
-        raise XbrlError("The file is empty.")
+        raise XbrlError("Il file è vuoto.")
     xml = _unwrap(data)
     if len(xml) > MAX_XML_BYTES:
-        raise XbrlError("The XBRL file is too large.")
+        raise XbrlError("Il file XBRL è troppo grande.")
     try:
         root = SafeET.fromstring(xml)
     except Exception as e:
-        raise XbrlError("The file is not valid XML.") from e
+        raise XbrlError("Il file non è un XBRL valido (XML non leggibile).") from e
     if _local(root.tag)[1] != "xbrl":
-        raise XbrlError("The file is not an XBRL instance.")
+        raise XbrlError("Il file non è un bilancio XBRL.")
 
     contexts = _contexts(root)
     facts, taxonomy = _facts(root, contexts)
     if not facts:
-        raise XbrlError("No Italian financial statement data (taxonomy itcc-ci) found in the file.")
+        raise XbrlError("Nel file non ci sono dati di un bilancio XBRL italiano (tassonomia itcc-ci).")
     ends = _year_ends(facts)
     current_end = ends[0]
     previous_end = next((e for e in ends[1:] if (current_end - e).days >= 300), None)

@@ -18,7 +18,13 @@ from calculation import (
     calculate_zmijewski_xscore,
     compute_esg_score,
 )
-from crisis import CRISIS_NUMERIC_KEYS, CRISIS_STRING_KEYS, assess_crisis, compute_dscr_from_components
+from crisis import (
+    CRISIS_NUMERIC_KEYS,
+    CRISIS_STRING_KEYS,
+    assess_crisis,
+    compute_cndcec_indices,
+    compute_dscr_from_components,
+)
 from scoring import compute_solvibly_score
 from services import AIServiceUnavailable, ExtractionError, process_document_data, to_number
 from xbrl_it import XbrlError, is_xbrl_upload, parse_xbrl
@@ -68,8 +74,8 @@ def _quality_checks(fd, italian):
     """Consistency checks on the data actually used, to flag extraction or typing errors."""
     msgs = []
 
-    def add(it, en):
-        msgs.append(it if italian else en)
+    def add(it, _en=None):
+        msgs.append(it)
 
     ta = fd.get("totalAssets") or 0
     reported = fd.get("totalAssetsReported")
@@ -90,6 +96,90 @@ def _quality_checks(fd, italian):
     return msgs
 
 
+# Rows of the comparison with the previous year: (key, label, format, better direction).
+COMPARISON_ROWS = [
+    ("revenue", "Ricavi delle vendite e delle prestazioni (A.1)", "eur", "up"),
+    ("ebit", "Risultato operativo (A − B)", "eur", "up"),
+    ("netIncome", "Utile (perdita) d'esercizio", "eur", "up"),
+    ("totalAssets", "Totale attivo", "eur", None),
+    ("totalEquity", "Patrimonio netto", "eur", "up"),
+    ("totalDebts", "Debiti totali (D)", "eur", "down"),
+    ("taxSocialDebts", "Debiti tributari e previdenziali (D.12 + D.13)", "eur", "down"),
+    ("currentRatio", "Liquidità corrente (attivo a breve / passivo a breve)", "ratio", "up"),
+    ("debtToEquityRatio", "Indebitamento (passività / patrimonio netto)", "ratio", "down"),
+    ("roe", "Redditività del capitale proprio (ROE)", "pct", "up"),
+    ("ros", "Redditività delle vendite (ROS)", "pct", "up"),
+]
+
+
+def _year_figures(d):
+    """Key figures and ratios of one year from a dict with the extracted items (None = missing)."""
+    def n(k):
+        v = d.get(k)
+        return v if isinstance(v, (int, float)) and not isinstance(v, bool) else None
+
+    ta = n("totalAssetsReported")
+    if ta is None and (n("totalCurrentAssets") is not None or n("totalNonCurrentAssets") is not None):
+        ta = (n("totalCurrentAssets") or 0.0) + (n("totalNonCurrentAssets") or 0.0)
+    cl, ncl, eq = n("totalCurrentLiabilities"), n("totalNonCurrentLiabilities"), n("totalEquity")
+    tl = (cl or 0.0) + (ncl or 0.0) if (cl is not None or ncl is not None) else None
+
+    def div(a, b):
+        return round(a / b, 4) if a is not None and b not in (None, 0) and b > 0 else None
+
+    tax_social = None
+    if n("taxDebts") is not None or n("socialSecurityDebts") is not None:
+        tax_social = (n("taxDebts") or 0.0) + (n("socialSecurityDebts") or 0.0)
+    return {
+        "revenue": n("revenue"), "ebit": n("ebit"), "netIncome": n("netIncome"), "totalAssets": ta,
+        "totalEquity": eq, "totalDebts": n("totalDebts"), "taxSocialDebts": tax_social,
+        "currentRatio": div(n("totalCurrentAssets"), cl), "debtToEquityRatio": div(tl, eq),
+        "roe": div(n("netIncome"), eq), "ros": div(n("ebit"), n("revenue")),
+    }
+
+
+def _year_comparison(fd):
+    """Compares the current year with the previous one when the filing contains both (XBRL)."""
+    prev = fd.get("_previousYear")
+    if not prev:
+        return None
+    current = _year_figures(fd)
+    previous = _year_figures(prev)
+    rows = []
+    for key, label, fmt, better in COMPARISON_ROWS:
+        c, p = current.get(key), previous.get(key)
+        if c is None and p is None:
+            continue
+        change = round(c - p, 4) if c is not None and p is not None else None
+        change_pct = round((c - p) / abs(p) * 100, 1) if change is not None and p not in (0, None) else None
+        rows.append({"key": key, "label": label, "format": fmt, "better": better,
+                     "previous": p, "current": c, "change": change, "changePct": change_pct})
+
+    # CNDCEC indices of both years, with the same sector group.
+    sector_fields = {k: fd.get(k) for k in ("cndcecSector", "industrySector")}
+    prev_for_indices = {**prev, **sector_fields}
+    if prev_for_indices.get("totalAssets") is None:
+        prev_for_indices["totalAssets"] = previous["totalAssets"]
+    cur_idx = {ix["id"]: ix for ix in compute_cndcec_indices(fd)["indices"]}
+    prev_idx = {ix["id"]: ix for ix in compute_cndcec_indices(prev_for_indices)["indices"]}
+    indices = []
+    for idx_id, ix in cur_idx.items():
+        p_ix = prev_idx.get(idx_id, {})
+        if ix["value"] is None and p_ix.get("value") is None:
+            continue
+        indices.append({
+            "id": idx_id, "label": ix["label"], "direction": ix["direction"], "threshold": ix["threshold"],
+            "previous": p_ix.get("value"), "current": ix["value"],
+            "previousBreached": p_ix.get("breached"), "currentBreached": ix["breached"],
+        })
+    return {
+        "previousFiscalYear": fd.get("_previousFiscalYear"),
+        "currentFiscalYear": fd.get("fiscalYear"),
+        "rows": rows,
+        "cndcecIndices": indices,
+    }
+
+
 def _calculate_results(financial_data):
     fd = financial_data
     italian = fd.get("country") == "Italy"
@@ -101,6 +191,7 @@ def _calculate_results(financial_data):
     results = {
         "country": fd.get("country"),
         "companyName": fd.get("companyName"),
+        "companyTaxCode": fd.get("companyTaxCode"),
         "industrySector": fd.get("industrySector"),
         "fiscalYear": fd.get("fiscalYear"),
         "isPubliclyListed": bool(fd.get("isPubliclyListed")),
@@ -175,6 +266,7 @@ def _calculate_results(financial_data):
     results["inputsDefaulted"] = sorted(defaulted)
     if fd.get("_extraction"):
         results["extraction"] = fd["_extraction"]
+    results["yearComparison"] = _year_comparison(fd)
 
     return results
 
@@ -244,13 +336,13 @@ def predict():
     """MANUAL FORM LOGIC"""
     data = request.get_json(silent=True)
     if not isinstance(data, dict):
-        return _error("Invalid JSON body.", 400)
+        return _error("Richiesta non valida.", 400)
     try:
         financial_data = _build_financial_data(data)
         return jsonify(_sanitise(_calculate_results(financial_data)))
     except Exception:
         log.exception("predict failed")
-        return _error("An unexpected error occurred while calculating the results.", 500)
+        return _error("Errore imprevisto durante il calcolo dei risultati.", 500)
 
 
 def _looks_like_pdf(file_storage):
@@ -281,6 +373,11 @@ def _read_xbrl_upload(file_storage, form):
         notes.append("Il bilancio XBRL non distingue i debiti entro e oltre l'esercizio: sono stati considerati "
                      "tutti a breve termine (scelta prudente per gli indici di liquidità).")
     parsed["_qualityNotes"] = notes
+    if meta.get("taxCode"):
+        parsed["companyTaxCode"] = meta["taxCode"]
+    if meta.get("previousYear"):
+        parsed["_previousYear"] = meta["previousYear"]
+        parsed["_previousFiscalYear"] = int(meta["previousPeriodEnd"][:4]) if meta.get("previousPeriodEnd") else None
     defaults = {}
     if not form.get("industrySector") and meta["appSector"]:
         defaults["industrySector"] = meta["appSector"]
@@ -302,14 +399,14 @@ def upload():
     file = request.files.get('document')
     previous_pdf = request.files.get('previousDocument')
     if not file:
-        return _error("No file uploaded.", 400)
+        return _error("Nessun file caricato.", 400)
 
     form = request.form.to_dict()
     head = _file_head(file)
     is_pdf = head.startswith(b"%PDF-")
     is_xbrl = not is_pdf and is_xbrl_upload(head, file.filename or "")
     if not (is_pdf or is_xbrl):
-        return _error("Upload a PDF or an XBRL file (.xbrl, .xml, signed .p7m or .zip).", 400)
+        return _error("Carica un PDF o un file XBRL (.xbrl, .xml, firmato .p7m o .zip).", 400)
 
     if is_xbrl:
         try:
@@ -318,7 +415,7 @@ def upload():
             return _error(str(e), 422)
         except Exception:
             log.exception("xbrl read failed")
-            return _error("An unexpected error occurred while reading the XBRL file.", 500)
+            return _error("Errore imprevisto durante la lettura del file XBRL.", 500)
         form = dict(form)
         for key, value in defaults.items():
             if not form.get(key):
@@ -328,7 +425,7 @@ def upload():
         return _respond_with(extracted, form, country)
 
     if previous_pdf and not _looks_like_pdf(previous_pdf):
-        return _error("The previous-year document must be a PDF.", 400)
+        return _error("Il bilancio dell'anno precedente deve essere un PDF.", 400)
 
     country = normalise_country(form.get('country'))
     company_type = str(form.get('companyType') or '').strip().lower()
@@ -338,12 +435,12 @@ def upload():
             file, country, company_type, form.get('industrySector'), prev_file=previous_pdf
         )
     except AIServiceUnavailable:
-        return _error("The AI service is not configured on the server (missing or invalid API key).", 503)
+        return _error("Il servizio AI non è configurato sul server (chiave API mancante o non valida).", 503)
     except ExtractionError as e:
         return _error(str(e), 422)
     except Exception:
         log.exception("upload extraction failed")
-        return _error("An unexpected error occurred while reading the document.", 500)
+        return _error("Errore imprevisto durante la lettura del documento.", 500)
 
     return _respond_with(extracted, form, country)
 
@@ -359,7 +456,7 @@ def _respond_with(extracted, form, country):
         return jsonify(_sanitise(_calculate_results(financial_data)))
     except Exception:
         log.exception("upload calculation failed")
-        return _error("An unexpected error occurred while calculating the results.", 500)
+        return _error("Errore imprevisto durante il calcolo dei risultati.", 500)
 
 
 def _sanitise(obj):
