@@ -31,7 +31,8 @@ function Help() {
 
       <h3>1. Inserisci i dati</h3>
       <ul>
-        <li><Link to="/upload-docs">Carica il bilancio in PDF</Link>: le voci vengono lette con AI (anche da PDF scansionati) e mostrate nei risultati per il controllo.</li>
+        <li><Link to="/upload-docs">Carica il file XBRL del bilancio</Link> (.xbrl, anche firmato .p7m o in .zip): lettura istantanea e senza AI, con l&apos;anno precedente, il codice ATECO e la forma giuridica, da cui viene proposto il settore CNDCEC.</li>
+        <li><Link to="/upload-docs">Oppure carica il bilancio in PDF</Link>: le voci vengono lette con AI (anche da PDF scansionati) e mostrate nei risultati per il controllo.</li>
         <li><Link to="/insert-data">Inserisci i dati a mano</Link>: puoi incollare importi copiati dal bilancio o da Excel (es. 1.234.567 o (12.500)).</li>
       </ul>
 

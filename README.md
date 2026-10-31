@@ -1,6 +1,9 @@
 # Solvibly AI
 
-Solvibly AI reads a company's financial statements (PDF upload or manual entry) and returns:
+Solvibly AI reads a company's financial statements and returns the analysis below. Input options:
+the **XBRL file filed with the Italian Registro Imprese** (`.xbrl`, signed `.p7m` or `.zip`, read directly,
+no AI, current and previous year, ATECO code and legal form included), a **PDF** (read with AI) or
+**manual entry**. Results:
 
 - **Crisis checks under the Italian Corporate Crisis Code (CCII, D.Lgs. 14/2019)** for Italian companies:
   equity test, prospective DSCR (6 or 12 months), the five CNDCEC sector indices, the warning signals of
@@ -70,6 +73,7 @@ backend/
   app.py          Flask app factory, CORS, upload limits, /api/health
   controller.py   /api/predict (manual data) and /api/upload (PDF) → results JSON
   services.py     PDF reading (only the statement pages; scanned PDFs sent as PDF), AI extraction (Claude / Gemini)
+  xbrl_it.py      Italian XBRL reader (taxonomy itcc-ci): facts, current/previous year, ATECO → sector
   calculation.py  ratios and distress models
   scoring.py      Solvibly Score (risk mappings, weights)
   crisis.py       CCII checks with legal references and thresholds

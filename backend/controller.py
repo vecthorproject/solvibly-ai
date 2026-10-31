@@ -1,5 +1,6 @@
 import logging
 import math
+import time
 
 from flask import jsonify, request
 
@@ -20,6 +21,7 @@ from calculation import (
 from crisis import CRISIS_NUMERIC_KEYS, CRISIS_STRING_KEYS, assess_crisis, compute_dscr_from_components
 from scoring import compute_solvibly_score
 from services import AIServiceUnavailable, ExtractionError, process_document_data, to_number
+from xbrl_it import XbrlError, is_xbrl_upload, parse_xbrl
 
 log = logging.getLogger(__name__)
 
@@ -78,6 +80,8 @@ def _quality_checks(fd, italian):
     if ta > 0 and abs(ta - tl_te) / ta > 0.05:
         add("Attivo e passivo non quadrano (scarto oltre il 5%): verifica passività e patrimonio netto.",
             "Assets do not match liabilities plus equity (gap above 5%): check liabilities and equity.")
+    for note in fd.get("_qualityNotes", []):
+        msgs.append(note)
     if (fd.get("revenue") or 0) <= 0:
         add("Ricavi nulli o negativi: diversi indici non sono significativi.",
             "Revenue is zero or negative: several ratios are not meaningful.")
@@ -255,16 +259,77 @@ def _looks_like_pdf(file_storage):
     return head == b"%PDF-"
 
 
+def _read_xbrl_upload(file_storage, form):
+    """Reads an Italian XBRL statement (no AI). Returns the extracted dict and the derived form defaults."""
+    started = time.monotonic()
+    data = file_storage.read()
+    parsed = parse_xbrl(data)
+    meta = parsed.pop("_xbrl")
+    if parsed.get("netIncomePreviousYear") is not None:
+        parsed["netIncome_t_minus_1"] = parsed["netIncomePreviousYear"]
+    parsed["_extraction"] = {
+        "mode": "xbrl",
+        "taxonomy": meta["taxonomy"],
+        "periodEnd": meta["periodEnd"],
+        "previousPeriodEnd": meta["previousPeriodEnd"],
+        "ateco": meta["ateco"],
+        "legalForm": meta["legalForm"],
+        "seconds": round(time.monotonic() - started, 2),
+    }
+    notes = []
+    if not meta["debtSplitKnown"]:
+        notes.append("Il bilancio XBRL non distingue i debiti entro e oltre l'esercizio: sono stati considerati "
+                     "tutti a breve termine (scelta prudente per gli indici di liquidità).")
+    parsed["_qualityNotes"] = notes
+    defaults = {}
+    if not form.get("industrySector") and meta["appSector"]:
+        defaults["industrySector"] = meta["appSector"]
+    if not form.get("cndcecSector") and meta["cndcecSector"]:
+        defaults["cndcecSector"] = meta["cndcecSector"]
+    if not form.get("legalForm") and meta["legalFormKey"]:
+        defaults["legalForm"] = meta["legalFormKey"]
+    return parsed, defaults
+
+
+def _file_head(file_storage, n=4096):
+    head = file_storage.stream.read(n)
+    file_storage.stream.seek(0)
+    return head
+
+
 def upload():
-    """UPLOAD FILE LOGIC"""
+    """UPLOAD FILE LOGIC: PDF (read with AI) or Italian XBRL (read directly)."""
     file = request.files.get('document')
     previous_pdf = request.files.get('previousDocument')
     if not file:
         return _error("No file uploaded.", 400)
-    if not _looks_like_pdf(file) or (previous_pdf and not _looks_like_pdf(previous_pdf)):
-        return _error("Only PDF documents are supported.", 400)
 
     form = request.form.to_dict()
+    head = _file_head(file)
+    is_pdf = head.startswith(b"%PDF-")
+    is_xbrl = not is_pdf and is_xbrl_upload(head, file.filename or "")
+    if not (is_pdf or is_xbrl):
+        return _error("Upload a PDF or an XBRL file (.xbrl, .xml, signed .p7m or .zip).", 400)
+
+    if is_xbrl:
+        try:
+            extracted, defaults = _read_xbrl_upload(file, form)
+        except XbrlError as e:
+            return _error(str(e), 422)
+        except Exception:
+            log.exception("xbrl read failed")
+            return _error("An unexpected error occurred while reading the XBRL file.", 500)
+        form = dict(form)
+        for key, value in defaults.items():
+            if not form.get(key):
+                form[key] = value
+        form["country"] = "italy"
+        country = "Italy"
+        return _respond_with(extracted, form, country)
+
+    if previous_pdf and not _looks_like_pdf(previous_pdf):
+        return _error("The previous-year document must be a PDF.", 400)
+
     country = normalise_country(form.get('country'))
     company_type = str(form.get('companyType') or '').strip().lower()
 
@@ -280,12 +345,16 @@ def upload():
         log.exception("upload extraction failed")
         return _error("An unexpected error occurred while reading the document.", 500)
 
+    return _respond_with(extracted, form, country)
+
+
+def _respond_with(extracted, form, country):
     try:
         base = {k: v for k, v in extracted.items() if v is not None}
         base["country"] = country
         # Values typed by the user in the form override the extracted ones.
         overrides = {k: v for k, v in form.items() if v not in (None, "")}
-        overrides["companyType"] = company_type
+        overrides["companyType"] = str(form.get('companyType') or '').strip().lower()
         financial_data = _build_financial_data({**overrides, "country": country}, base=base)
         return jsonify(_sanitise(_calculate_results(financial_data)))
     except Exception:

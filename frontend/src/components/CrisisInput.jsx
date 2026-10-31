@@ -140,7 +140,7 @@ const NEGATIVE_ALLOWED = new Set(['dscrOperatingFreeCashFlow', 'annualDebtServic
 
 // --- MAIN COMPONENT ---
 
-function CrisisInput({ value, onChange, industrySector, showBalanceSheetExtras = true, balanceSheetHint }) {
+function CrisisInput({ value, onChange, industrySector, showBalanceSheetExtras = true, balanceSheetHint, sectorFromXbrl = false }) {
   const [dscrMode, setDscrMode] = useState(
     dscrComponentFields.numerator.some(f => value[f.name] !== '' && value[f.name] != null) ? 'components' : 'totals'
   );
@@ -201,7 +201,9 @@ function CrisisInput({ value, onChange, industrySector, showBalanceSheetExtras =
               {cndcecSectors.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
             </Select>
             <small>
-              {suggestedSector
+              {sectorFromXbrl && !value.cndcecSector
+                ? 'Puoi lasciarlo vuoto: con il file XBRL il gruppo viene ricavato dal codice ATECO del bilancio.'
+                : suggestedSector
                 ? 'Proposto in base al settore indicato; modificalo se il codice ATECO rientra in un altro gruppo.'
                 : industrySector
                   ? 'Per questo settore la corrispondenza non è automatica: scegli il gruppo in base al codice ATECO.'
