@@ -51,82 +51,82 @@ export const industrySectors = {
 
 export const ratioLearnMoreDict = {
   currentRatio: {
-    significance: `Measures a company's ability to cover its short-term obligations (due within one year) with its short-term assets. It's a key indicator of liquidity.`,
-    notes: `A value above 1.0 is generally considered healthy. However, the ideal ratio can vary significantly by industry. A very high ratio might suggest inefficient use of assets.`
+    significance: `Misura la capacità di coprire le passività a breve (in scadenza entro l'anno) con l'attivo a breve. È l'indicatore principale di liquidità.`,
+    notes: `Un valore superiore a 1 è in genere considerato sano, ma il livello ideale cambia molto da settore a settore. Un valore molto alto può indicare un uso poco efficiente delle risorse.`
   },
   quickRatio: {
-    significance: `Similar to the Current Ratio, but excludes inventory from current assets. It provides a more conservative measure of liquidity.`,
-    notes: `A value above 1.0 is strong, indicating the company can meet its short-term obligations without selling any inventory.`
+    significance: `Come l'indice di liquidità corrente, ma esclude le rimanenze dall'attivo a breve: è una misura più prudente della liquidità.`,
+    notes: `Un valore superiore a 1 indica che l'impresa può far fronte alle passività a breve senza dover vendere il magazzino.`
   },
   debtToEquityRatio: {
-    significance: `Indicates the proportion of a company's financing that comes from debt versus equity. It's a key measure of financial leverage.`,
-    notes: `A high ratio indicates higher risk, as the company relies heavily on debt. A ratio below 1.0 is often considered safe, but this varies greatly by industry.`
+    significance: `Indica quanta parte dei finanziamenti arriva da terzi rispetto ai mezzi propri: è la misura principale della leva finanziaria.`,
+    notes: `Un valore alto indica un rischio maggiore, perché l'impresa dipende molto dal debito. Sotto 1 è spesso considerato prudente, ma dipende dal settore.`
   },
   debtToAssetsRatio: {
-    significance: `Measures the percentage of a company's assets that are financed through debt.`,
-    notes: `A ratio below 0.5 (50%) is generally considered less risky, as it means the majority of assets are financed by equity.`
+    significance: `Misura la percentuale dell'attivo finanziata con capitale di terzi.`,
+    notes: `Sotto il 50% è in genere meno rischioso: la maggior parte dell'attivo è finanziata con mezzi propri.`
   },
   interestCoverageRatio: {
-    significance: `Measures how many times a company can cover its current interest payments with its available earnings (EBIT).`,
-    notes: `A ratio above 1.5 is typically considered the minimum acceptable level. Higher is better, as it indicates a better ability to handle debt payments.`
+    significance: `Misura quante volte il risultato operativo (EBIT) copre gli oneri finanziari dell'esercizio.`,
+    notes: `Sotto 1,5 la copertura è considerata debole; più è alto, maggiore è la capacità di sostenere il costo del debito.`
   },
   roa: {
-    significance: `Return on Assets (ROA) indicates how profitable a company is in relation to its total assets. It measures management's efficiency at using assets to generate earnings.`,
-    notes: `A higher ROA is better. A value above 5% is often considered good.`
+    significance: `La redditività dell'attivo (ROA) indica quanto utile netto l'impresa genera rispetto al totale dell'attivo.`,
+    notes: `Più è alto meglio è; oltre il 5% è spesso considerato un buon valore.`
   },
   roe: {
-    significance: `Return on Equity (ROE) measures the rate of return on the ownership interest (shareholders' equity) of the common stockholders.`,
-    notes: `It's a key measure of profitability for investors. A value above 15% is often considered good.`
+    significance: `La redditività del capitale proprio (ROE) misura il rendimento dei mezzi propri investiti dai soci.`,
+    notes: `È l'indicatore di redditività più seguito dai soci; oltre il 15% è spesso considerato buono. Con patrimonio netto molto basso o negativo perde significato.`
   },
   roi: {
-    significance: `Return on Investment (ROI) measures the efficiency of the total capital invested (debt + equity) in generating operating profit (EBIT).`,
-    notes: `It provides a broad view of the company's ability to generate profit from its capital base. A value above the company's cost of capital indicates value creation.`
+    significance: `La redditività del capitale investito (ROI) misura il risultato operativo (EBIT) rispetto al totale dell'attivo.`,
+    notes: `Un ROI superiore al costo medio del capitale indica che l'impresa crea valore.`
   },
   ros: {
-    significance: `Return on Sales (ROS) is a measure of how efficiently a company turns sales into profits (EBIT).`,
-    notes: `It indicates the company's operational efficiency. A higher percentage is better.`
+    significance: `La redditività delle vendite (ROS) misura quanta parte dei ricavi diventa risultato operativo (EBIT).`,
+    notes: `Indica l'efficienza della gestione caratteristica: più è alto, meglio è.`
   },
   assetTurnover: {
-    significance: `Measures the efficiency of a company's use of its assets in generating sales revenue.`,
-    notes: `A higher ratio is generally better, but it is highly industry-dependent.`
+    significance: `Misura quante volte l'attivo si "trasforma" in ricavi nell'anno: è un indicatore di efficienza nell'uso delle risorse.`,
+    notes: `In genere più è alto meglio è, ma dipende molto dal settore (alto nel commercio, basso nelle attività ad alta intensità di capitale).`
   }
 };
 
 export const normativeLearnMoreDict = {
   dscr: {
-    significance: `The Debt Service Coverage Ratio (DSCR) is the key forward-looking indicator used to verify debt sustainability under the Italian Corporate Crisis Code (art. 3 CCII: sustainability of debts for at least the next twelve months; CNDCEC: six-month horizon). It measures the ability to cover the debt falling due in the period with the cash flows expected in the same period.`,
-    notes: `A value below 1.0 is a primary alert signal, indicating that the company is not expected to generate enough cash to meet its financial obligations, suggesting a high risk of crisis. A value equal to 1.0 means the company can exactly cover its debt service, which is considered the minimum safe threshold.`
+    significance: `Il DSCR (Debt Service Coverage Ratio) è l'indicatore prospettico usato per verificare la sostenibilità dei debiti secondo il Codice della crisi (art. 3 CCII: almeno i dodici mesi successivi; CNDCEC: orizzonte di sei mesi). Confronta i flussi di cassa attesi nel periodo con il debito in scadenza nello stesso periodo.`,
+    notes: `Un valore inferiore a 1 è un segnale di allarme: i flussi attesi non bastano a pagare il debito in scadenza. Un valore pari a 1 indica una copertura appena sufficiente.`
   },
 };
 
 export const modelLearnMoreDict = {
   altmanZScore: {
-    significance: `The pioneering statistical model for predicting corporate bankruptcy, developed by Edward Altman in 1968. It combines five key financial ratios into a single score to classify a company's financial health into distinct zones.`,
-    notes: `Solvibly picks the variant that matches the company: the original Z-Score for listed manufacturers (zones 1.81 / 2.99), the Z'-Score for private manufacturers (1.23 / 2.90) and the Z''-Score for non-manufacturing companies, public or private (1.10 / 2.60). Each variant is compared with its own thresholds. The zones (Distress, Grey, Safe) indicate the risk of financial distress within two years.`
+    significance: `Il primo modello statistico di previsione del fallimento, sviluppato da Edward Altman nel 1968. Combina cinque indici di bilancio in un unico punteggio e classifica l'impresa in zone di rischio.`,
+    notes: `Solvibly usa la variante adatta all'impresa: lo Z-Score originale per le manifatturiere quotate (soglie 1,81 / 2,99), lo Z'-Score per le manifatturiere non quotate (1,23 / 2,90) e lo Z''-Score per le imprese non manifatturiere, quotate o no (1,10 / 2,60). Ogni variante è confrontata con le proprie soglie. Le zone (dissesto, grigia, sicura) indicano il rischio di crisi nei due anni successivi.`
   },
   springateSScore: {
-    significance: `A four-ratio model developed in Canada that uses discriminant analysis to predict corporate failure. It was noted for its very high accuracy (92.5%) on its initial test sample.`,
-    notes: `The model calculates a single score where a value below the cut-off of 0.862 indicates a high probability of bankruptcy. It's a straightforward and powerful alternative to the Altman model.`
+    significance: `Modello canadese a quattro indici basato sull'analisi discriminante. Nel campione originale ha classificato correttamente il 92,5% delle imprese.`,
+    notes: `Un punteggio inferiore alla soglia di 0,862 indica un'elevata probabilità di insolvenza. È un'alternativa semplice al modello di Altman.`
   },
   tafflerTScore: {
-    significance: `A UK-based solvency model, similar in structure to Altman's, used to predict corporate failure. It combines four key ratios related to profitability, working capital, financial risk, and liquidity.`,
-    notes: `Solvibly uses the 1983 formulation (z = 3.20 + 12.18·x1 + 2.50·x2 − 10.68·x3 + 0.029·x4, where x4 is the no-credit interval). Its cut-off is 0: a negative score indicates a financial profile similar to companies that failed ("at risk"), a positive score a solvent profile. The 0.2/0.3 zones sometimes quoted belong to a different, simplified version of the model.`
+    significance: `Modello sviluppato nel Regno Unito, simile a quello di Altman, che combina quattro indici su redditività, capitale circolante, rischio finanziario e liquidità.`,
+    notes: `Solvibly usa la formulazione del 1983 (z = 3,20 + 12,18·x1 + 2,50·x2 − 10,68·x3 + 0,029·x4, dove x4 è il "no-credit interval"). La soglia è 0: un punteggio negativo indica un profilo simile a quello delle imprese fallite, uno positivo un profilo solvibile. Le zone 0,2 / 0,3 che a volte si trovano citate appartengono a una versione semplificata diversa.`
   },
   fulmerHFactor: {
-    significance: `A complex model developed from a large set of 40 financial ratios to predict bankruptcy one year in advance. It is noted for its statistical rigor and high accuracy in initial tests.`,
-    notes: `The model's interpretation is straightforward: a negative H-Factor score (< 0) indicates a high probability of failure (Failure Zone), while a positive score suggests financial stability (Safe Zone).`
+    significance: `Modello costruito selezionando nove indici da un insieme di 40, per prevedere l'insolvenza con un anno di anticipo.`,
+    notes: `Un valore negativo (< 0) indica un'elevata probabilità di insolvenza, un valore positivo stabilità finanziaria.`
   },
   groverGScore: {
-    significance: `A more recent and simpler model that uses only three financial ratios to predict bankruptcy. Despite its simplicity, it has shown very high predictive accuracy, often outperforming older models.`,
-    notes: `The model provides a score where values below -0.02 are classified as financially distressed. It's a powerful example of a parsimonious model that achieves high performance with fewer variables.`
+    significance: `Modello più recente e semplice, con soli tre indici, che nei test ha mostrato un'accuratezza elevata, spesso superiore ai modelli più vecchi.`,
+    notes: `Valori inferiori a −0,02 indicano dissesto, superiori a 0,01 una situazione sicura.`
   },
   zmijewskiXScore: {
-    significance: `Developed by Mark Zmijewski in 1984, this model uses a probit analysis to estimate the probability of financial distress. It is noted for its critique of the 'sample selection bias' of previous models.`,
-    notes: `The model is praised for its simplicity, using only three common financial ratios (ROA, Debt Ratio, and Current Ratio). A higher score indicates a higher probability of default.` 
+    significance: `Sviluppato da Mark Zmijewski nel 1984 con un modello probit, stima la probabilità di dissesto finanziario.`,
+    notes: `Usa tre indici: ROA, indebitamento e liquidità corrente. Un punteggio più alto indica una probabilità di dissesto più alta; sopra 0 la probabilità supera il 50%.`
   },
   ohlsonOScore: {
-    significance: `Developed by James Ohlson in 1980, this statistical model estimates the likelihood of corporate bankruptcy using a probit regression. It integrates leverage, liquidity, profitability, and income trend indicators into a single predictive score.`,
-    notes: `The model combines nine key variables, including total assets (log size), debt ratio, working capital, cash flow, and recent earnings changes. Scores below -1.32 indicate low risk, between -1.32 and 0.5 represent a moderate zone, and above 0.5 signal high bankruptcy risk.`
+    significance: `Sviluppato da James Ohlson nel 1980 con un modello logit, stima la probabilità di fallimento combinando dimensione, indebitamento, liquidità, redditività e andamento degli utili.`,
+    notes: `Usa nove variabili, tra cui l'utile dei due ultimi esercizi. Punteggi sotto −1,32 indicano rischio basso, tra −1,32 e 0,5 rischio moderato, sopra 0,5 rischio alto.`
   }
 };
 
@@ -271,7 +271,7 @@ export const normativeThresholds = {
     thresholds: [1.0, 1.0],
     scale: [0, 2],
     logic: 'higher',
-    labels: ['Crisis Zone', '', 'Safe Zone'] 
+    labels: ['Zona di crisi', '', 'Zona sicura'] 
   }
 };
 
@@ -281,43 +281,43 @@ export const modelThresholds = {
   altmanZScore: {
     thresholds: [1.81, 2.99],
     scale: [0, 5],
-    labels: ['Distress Zone', 'Grey Zone', 'Safe Zone'],
+    labels: ['Zona di dissesto', 'Zona grigia', 'Zona sicura'],
     logic: 'higher'
   },
   springateSScore: {
     thresholds: [0.862, 0.862], // cut-off 0.862
     scale: [0, 2],
-    labels: ['Distress Zone', '', 'Safe Zone'], // binary
+    labels: ['Zona di dissesto', '', 'Zona sicura'], // binary
     logic: 'higher'
   },
   tafflerTScore: {
     thresholds: [0, 0], // cut-off 0 (Taffler 1983 model with constant 3.20)
     scale: [-5, 10],
-    labels: ['High Risk', '', 'Low Risk'], // binary
+    labels: ['Rischio alto', '', 'Rischio basso'], // binary
     logic: 'higher'
   },
   fulmerHFactor: {
     thresholds: [0, 0], // cut-off 0
     scale: [-5, 5],
-    labels: ['Failure Zone', '', 'Safe Zone'], // binary
+    labels: ['Zona di insolvenza', '', 'Zona sicura'], // binary
     logic: 'higher'
   },
   groverGScore: {
     thresholds: [-0.02, 0.01],
     scale: [-0.5, 0.5],
-    labels: ['Distress Zone', 'Grey Zone', 'Safe Zone'],
+    labels: ['Zona di dissesto', 'Zona grigia', 'Zona sicura'],
     logic: 'higher'
   },
   zmijewskiXScore: {
     thresholds: [0, 0], // cut-off 0
     scale: [-5, 5],
-    labels: ['Non-Distressed', '', 'Distressed'], // binary
+    labels: ['Non in dissesto', '', 'In dissesto'], // binary
     logic: 'lower'
   },
     ohlsonOScore: {
     thresholds: [-1.32, 0.5],
     scale: [-5, 3],
-    labels: ['Low Risk', 'Moderate Risk', 'High Risk'],
+    labels: ['Rischio basso', 'Rischio moderato', 'Rischio alto'],
     logic: 'lower'
   }
 };

@@ -18,7 +18,7 @@ const StyledPageTitle = styled.h2`
 function InsertYourData() {
     return(
         <div css={css`margin: 30px;`}>
-            <StyledPageTitle>Manually Enter Your Company's Financial Data</StyledPageTitle>
+            <StyledPageTitle>Inserisci a mano i dati di bilancio</StyledPageTitle>
             <InsertYourDataForm />
         </div>
     )

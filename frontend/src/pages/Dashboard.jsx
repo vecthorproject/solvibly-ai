@@ -67,8 +67,8 @@ function Dashboard() {
             user-select: none;
           `}
         >
-          Get started with a new{' '}
-          <span css={css`color: #15a497`}>Project</span>
+          Inizia una nuova{' '}
+          <span css={css`color: #15a497`}>analisi</span>
         </h1>
         <p
           css={css`
@@ -96,39 +96,39 @@ function Dashboard() {
         `}
       >
         <div css={iconBox}>
-          <Link to="/insert-data" aria-label="Insert data">
+          <Link to="/insert-data" aria-label="Inserisci i dati">
             <img
               src={insertIcon}
-              alt="Insert data Icon"
+              alt="Inserisci i dati"
               css={imageStyle}
               role="button" 
               tabIndex={0}
             />
           </Link>
-          <p css={descrFeatures}>Insert your data</p>
+          <p css={descrFeatures}>Inserisci i dati</p>
         </div>
 
         <div css={iconBox}>
-          <Link to="/upload-docs" aria-label="Upload docs">
+          <Link to="/upload-docs" aria-label="Carica il bilancio">
             <img
               src={uploadIcon}
-              alt="Upload docs Icon"
+              alt="Carica il bilancio"
               css={imageStyle}
               role="button"
               tabIndex={0}
             />
           </Link>
-          <p css={descrFeatures}>Upload your docs</p>
+          <p css={descrFeatures}>Carica il bilancio<br /><small>PDF o XBRL</small></p>
         </div>
 
-        <div css={iconBox} title="Coming soon">
+        <div css={iconBox} title="In arrivo">
           <img
             src={searchIcon}
-            alt="Search data Icon (coming soon)"
+            alt="Cerca sul web (in arrivo)"
             css={[imageStyle, css`opacity: 0.45; cursor: not-allowed; &:hover { transform: none; }`]}
             aria-disabled="true"
           />
-          <p css={descrFeatures}>Browse from Web<br /><small>(coming soon)</small></p>
+          <p css={descrFeatures}>Cerca sul web<br /><small>(in arrivo)</small></p>
         </div>
       </div>
     </div>

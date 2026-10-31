@@ -70,3 +70,19 @@ export function formatEuro(v) {
   if (typeof v !== 'number' || !Number.isFinite(v)) return 'n.d.';
   return `€ ${v.toLocaleString('it-IT', { maximumFractionDigits: 0 })}`;
 }
+
+export function formatNumber(v, digits = 2) {
+  if (typeof v !== 'number' || !Number.isFinite(v)) return 'n.d.';
+  return v.toLocaleString('it-IT', { minimumFractionDigits: digits, maximumFractionDigits: digits });
+}
+
+export function formatPercent(v, digits = 1) {
+  if (typeof v !== 'number' || !Number.isFinite(v)) return 'n.d.';
+  return `${(v * 100).toLocaleString('it-IT', { maximumFractionDigits: digits })}%`;
+}
+
+export function formatDate(iso) {
+  if (!iso) return 'n.d.';
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? 'n.d.' : d.toLocaleDateString('it-IT');
+}

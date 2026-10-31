@@ -18,7 +18,7 @@ const StyledPageTitle = styled.h2`
 function UploadYourDocs() {
     return(
         <div css={css`margin: 30px;`}>
-            <StyledPageTitle>Upload Your Company's Financial Documents</StyledPageTitle>
+            <StyledPageTitle>Carica il bilancio dell&apos;impresa</StyledPageTitle>
             <UploadYourDocsPanel />
         </div>
     )

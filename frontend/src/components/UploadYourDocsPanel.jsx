@@ -369,7 +369,7 @@ const XBRL_EXTENSIONS = ['.xbrl', '.xml', '.p7m', '.zip'];
 const isXbrlFile = (file) => !!file && XBRL_EXTENSIONS.some(ext => file.name.toLowerCase().endsWith(ext));
 
 const countryChoice = [{value: "usa", label: "USA"}, {value: "italy", label: "Italia"}]
-const companyType = [{value: "public", label: "Public"}, {value: "private", label: "Private"}]
+const companyType = [{value: "public", label: "Quotata"}, {value: "private", label: "Non quotata"}]
 
 // --- MAIN COMPONENT ---
 
@@ -462,9 +462,9 @@ function UploadYourDocsPanel() {
     if (rejectedFiles && rejectedFiles.length > 0) {
       const firstError = rejectedFiles[0].errors[0];
       if (firstError.code === 'file-too-large') {
-        setUploadError(`File is too large. Maximum file size is 10MB.`);
+        setUploadError("Il file è troppo grande (massimo 10 MB).");
       } else {
-        setUploadError("File type not supported. Upload a PDF or an XBRL file (.xbrl, .xml, signed .p7m or .zip).");
+        setUploadError("Tipo di file non supportato: carica un PDF o un file XBRL (.xbrl, .xml, firmato .p7m o .zip).");
       }
       setUploadedFile(null);
     } else {
@@ -509,7 +509,7 @@ function UploadYourDocsPanel() {
   const performUpload = async (ohlsonData) => {
     if (isLoading) return;
     if (!uploadedFile) {
-      setUploadError("Missing file. Please reselect the PDF.");
+      setUploadError("File mancante: selezionalo di nuovo.");
       return;
     }
 
@@ -592,7 +592,7 @@ function UploadYourDocsPanel() {
       }
       console.error("Uploading error:", error);
       if (isMountedRef.current) {
-        setUploadError(error?.response?.data?.error || "An error occurred while uploading the file.");
+        setUploadError(error?.response?.data?.error || "Si è verificato un errore durante il caricamento del file.");
         setIsLoading(false);
         setIsAnalyzing(false);
       }
@@ -607,7 +607,7 @@ function UploadYourDocsPanel() {
 
   const handleUpload = async () => {
     if (!uploadedFile) {
-      setUploadError("Please upload a PDF or XBRL file to continue.");
+      setUploadError("Carica un PDF o un file XBRL per continuare.");
       return;
     }
     // The XBRL filing already contains the previous year: no need to ask for it.
@@ -633,7 +633,7 @@ function UploadYourDocsPanel() {
           
           <SelectorsContainer>
             <SelectorGroup>
-              <SectionLabel>Country of Operation</SectionLabel>
+              <SectionLabel>Paese</SectionLabel>
               <OptionsContainer>
                 {countryChoice.map(option => (
                   <StyledRadioButton key={option.value} checked={selectedCountry === option.value}>
@@ -654,7 +654,7 @@ function UploadYourDocsPanel() {
             </SelectorGroup>
 
             <SelectorGroup>
-              <SectionLabel>Company Type</SectionLabel>
+              <SectionLabel>Tipo di società</SectionLabel>
               <OptionsContainer>
                 {companyType.map(option => (
                   <StyledRadioButton key={option.value} checked={selectedType === option.value}>
@@ -675,14 +675,14 @@ function UploadYourDocsPanel() {
             </SelectorGroup>
 
             <SelectorGroup>
-              <SectionLabel>Industry Sector</SectionLabel>
+              <SectionLabel>Settore</SectionLabel>
               <StyledSelect 
                 name="industrySector" 
                 value={selectedSector} 
                 onChange={(e) => setSelectedSector(e.target.value)} 
                 autoComplete="off"
               >
-                <option value="">-- Select a Sector --</option>
+                <option value="">-- Seleziona un settore --</option>
                 {(industrySectors[countryKey] || []).map(sector => (
                   <option key={sector.value} value={sector.value}>
                     {sector.label}
@@ -706,12 +706,12 @@ function UploadYourDocsPanel() {
             </>
           ) : (
           <>
-          <OptionalSectionLabel>PROSPECTIVE DATA (DSCR)<OptionalBadgePanel>*Optional</OptionalBadgePanel></OptionalSectionLabel>
+          <OptionalSectionLabel>DATI PREVISIONALI (DSCR)<OptionalBadgePanel>*Facoltativo</OptionalBadgePanel></OptionalSectionLabel>
           <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
             <StyledOptionalInput 
               type="number" 
               name="dscrCashFlow" 
-              placeholder="Expected Cash Flow (6m)"
+              placeholder="Flussi di cassa attesi (6 mesi)"
               value={dscrCashFlow}
               onChange={(e) => setDscrCashFlow(e.target.value)}
               onKeyDown={handleNumberInput}
@@ -721,7 +721,7 @@ function UploadYourDocsPanel() {
             <StyledOptionalInput 
               type="number" 
               name="dscrDebtService" 
-              placeholder="Debt Service Due (6m)"
+              placeholder="Servizio del debito (6 mesi)"
               value={dscrDebtService}
               onChange={(e) => setDscrDebtService(e.target.value)}
               onKeyDown={handleNumberInput}
@@ -732,7 +732,7 @@ function UploadYourDocsPanel() {
           </>
           )}
           
-          <OptionalSectionLabel>SUSTAINABILITY (ESG)<OptionalBadgePanel>*Optional</OptionalBadgePanel></OptionalSectionLabel>
+          <OptionalSectionLabel>SOSTENIBILITÀ (ESG)<OptionalBadgePanel>*Facoltativo</OptionalBadgePanel></OptionalSectionLabel>
           <EsgInput onChange={handleEsgChange} />
 
           <UploadDocContainer 
@@ -751,7 +751,7 @@ function UploadYourDocsPanel() {
             <input id="fileInput" {...getInputProps()} />
             {uploadedFile ? (
               <FilePreviewContainer>
-                <FilePreview>Selected file:</FilePreview>
+                <FilePreview>File selezionato:</FilePreview>
                 <StyledDocsIcon 
                   src={
                     uploadedFile &&
@@ -774,7 +774,7 @@ function UploadYourDocsPanel() {
                   <StyledSubText>
                     {selectedCountry === 'italy'
                       ? 'Trascina qui il bilancio in PDF o XBRL (anche firmato .p7m), oppure clicca per sceglierlo…'
-                      : 'Drag and drop your PDF file here or click to browse...'}
+                      : 'Trascina qui il bilancio in PDF (es. Form 10-K), oppure clicca per sceglierlo…'}
                   </StyledSubText>
                   {selectedCountry === 'italy' && (
                     <XbrlHint>
@@ -814,10 +814,8 @@ function UploadYourDocsPanel() {
                     {uploadingXbrl
                       ? 'Lettura del file XBRL e calcolo degli indicatori…'
                       : !isAnalyzing
-                      ? (selectedCountry === 'italy' ? 'Caricamento del documento…' : 'Uploading the document…')
-                      : (selectedCountry === 'italy'
-                          ? `Lettura delle pagine di bilancio ed estrazione delle voci con AI, poi calcolo degli indicatori — ${elapsed}s (di solito meno di un minuto)`
-                          : `Reading the statement pages and extracting the items with AI, then computing the indicators — ${elapsed}s (usually under a minute)`)}
+                      ? 'Caricamento del documento…'
+                      : `Lettura delle pagine di bilancio ed estrazione delle voci con AI, poi calcolo degli indicatori — ${elapsed}s (di solito meno di un minuto)`}
                   </ProgressText>
                 </>
               )}
@@ -825,8 +823,8 @@ function UploadYourDocsPanel() {
               <ButtonWrapper>
                 <StyledButton type='button' onClick={handleUpload} disabled={isLoading || showOhlsonPrompt}>
                     {isLoading
-                      ? (uploadingXbrl ? 'Reading XBRL...' : isAnalyzing ? 'Analyzing with AI...' : `Uploading... ${uploadProgress}%`)
-                      : 'Upload & Analyze'}
+                      ? (uploadingXbrl ? 'Lettura XBRL…' : isAnalyzing ? 'Analisi con AI…' : `Caricamento… ${uploadProgress}%`)
+                      : 'Carica e analizza'}
                 </StyledButton>
               </ButtonWrapper>
           </LoadingFeedbackWrapper>
