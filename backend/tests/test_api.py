@@ -60,8 +60,9 @@ def _pdf_bytes(pages_text):
 
 
 def test_upload_without_api_key_returns_503(client, monkeypatch):
-    monkeypatch.setattr(services, "GEMINI_API_KEY", None)
-    monkeypatch.setattr(services, "_client", None)
+    monkeypatch.setattr(services, "AI_PROVIDER", "claude")
+    monkeypatch.setattr(services, "ANTHROPIC_API_KEY", None)
+    monkeypatch.setattr(services, "_clients", {})
     pdf = _pdf_bytes(["Stato patrimoniale Totale attivo 1.000.000 " * 20])
     data = {"document": (io.BytesIO(pdf), "bilancio.pdf"), "country": "italy", "companyType": "private"}
     r = client.post("/api/upload", data=data, content_type="multipart/form-data")

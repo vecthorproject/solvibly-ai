@@ -273,7 +273,7 @@ def upload():
             file, country, company_type, form.get('industrySector'), prev_file=previous_pdf
         )
     except AIServiceUnavailable:
-        return _error("The AI service is not configured on the server (missing GEMINI_API_KEY).", 503)
+        return _error("The AI service is not configured on the server (missing or invalid API key).", 503)
     except ExtractionError as e:
         return _error(str(e), 422)
     except Exception:

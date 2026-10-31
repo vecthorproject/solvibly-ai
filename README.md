@@ -19,7 +19,7 @@ Solvibly AI reads a company's financial statements (PDF upload or manual entry) 
 ## Tech stack
 
 - **Frontend:** React 19 + Vite, Emotion
-- **Backend:** Python 3.11+ / Flask, PyMuPDF, Google Gemini (document extraction)
+- **Backend:** Python 3.11+ / Flask, PyMuPDF, Claude (Anthropic API) for document extraction, Gemini optional
 
 ## Development
 
@@ -30,7 +30,7 @@ cd backend
 python -m venv venv
 source venv/bin/activate            # Windows: venv\Scripts\activate
 pip install -r requirements-dev.txt
-cp .env.example .env                # then set GEMINI_API_KEY
+cp .env.example .env                # then set ANTHROPIC_API_KEY
 python app.py                       # http://127.0.0.1:5000
 pytest                              # unit + API tests
 ```
@@ -51,8 +51,11 @@ npm run build
 
 | Variable | Purpose | Default |
 |---|---|---|
-| `GEMINI_API_KEY` | Key used to read uploaded statements. In the EU/EEA use a paid key: on the free tier content may be used by Google to improve its products, and the terms only allow paid services for apps offered to EEA users. | — |
-| `GEMINI_MODEL` | Gemini model id | `gemini-2.5-flash` |
+| `AI_PROVIDER` | `claude` or `gemini`. If empty: Claude when `ANTHROPIC_API_KEY` is set, otherwise Gemini | `claude` |
+| `ANTHROPIC_API_KEY` | Claude API key, used to read uploaded statements (text, or the PDF itself when scanned). API data is not used for training. | — |
+| `CLAUDE_MODEL` | Claude model id | `claude-haiku-5-5` |
+| `CLAUDE_EFFORT` | `low` / `medium` / `high`: how much the model reasons before answering | `medium` |
+| `GEMINI_API_KEY`, `GEMINI_MODEL` | Optional alternative. For apps offered to EU/EEA, Swiss or UK users, Google's terms allow only the paid services. | — / `gemini-2.5-flash` |
 | `ALLOWED_ORIGINS` | Comma-separated CORS origins | `http://localhost:5173,http://127.0.0.1:5173` |
 | `FLASK_DEBUG` | Flask debug mode (development only) | `0` |
 | `MAX_UPLOAD_MB` | Max request size | `25` |
@@ -63,7 +66,7 @@ npm run build
 backend/
   app.py          Flask app factory, CORS, upload limits, /api/health
   controller.py   /api/predict (manual data) and /api/upload (PDF) → results JSON
-  services.py     PDF reading (only the statement pages; scanned PDFs sent as PDF), Gemini extraction
+  services.py     PDF reading (only the statement pages; scanned PDFs sent as PDF), AI extraction (Claude / Gemini)
   calculation.py  ratios and distress models
   scoring.py      Solvibly Score (risk mappings, weights)
   crisis.py       CCII checks with legal references and thresholds

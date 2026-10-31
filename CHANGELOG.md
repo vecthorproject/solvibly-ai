@@ -14,7 +14,10 @@
   including values that were missing and treated as 0.
 - Extraction of extra Italian balance-sheet items (total debts, tax and social-security debts, provisions,
   share capital, previous-year net income from the comparative column).
-- Scanned PDFs are sent to Gemini as PDF; only the pages with the financial statements are sent for
+- Document extraction with Claude (Claude Haiku 5.5 by default) using structured outputs: the answer
+  always follows a JSON schema and items absent from the document are reported as missing instead of 0.
+  Gemini remains available with `AI_PROVIDER=gemini`.
+- Scanned PDFs are sent to the model as PDF; only the pages with the financial statements are sent for
   long documents (e.g. a 99-page 10-K → 26 pages).
 - `/api/health`, `.env.example`, pytest suite.
 
