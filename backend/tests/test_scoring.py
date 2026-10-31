@@ -20,19 +20,19 @@ def test_altman_risk_uses_variant_thresholds():
 
 def results(**kw):
     r = {"currentRatio": 1.5, "quickRatio": 1.2, "altmanZScore": 2.0, "altmanVariant": "Z1",
-         "vecthorMLScore": 0.9, "springateSScore": 1.0}
+         "springateSScore": 1.0}
     r.update(kw)
     return r
 
 
-def test_vecthor_excluded_out_of_domain():
-    out = compute_solvibly_score(results(), vecthor_in_domain=False)
-    assert out["solviblyBreakdown"]["weights_used"]["vecthor"] == 0.0
-    inside = compute_solvibly_score(results(), vecthor_in_domain=True)
-    assert inside["solviblyBreakdown"]["weights_used"]["vecthor"] > 0
-    assert inside["solviblyScore"] > out["solviblyScore"]
+def test_weights_renormalised_without_esg():
+    out = compute_solvibly_score(results())
+    w = out["solviblyBreakdown"]["weights_used"]
+    assert w["esg"] == 0.0 and w["classics"] > 0 and w["ratios"] > 0
+    assert out["solviblyBreakdown"]["renorm_sum"] == pytest.approx(0.70)
+    assert 0.0 <= out["solviblyScore"] <= 1.0
 
 
 def test_band():
-    out = compute_solvibly_score({}, vecthor_in_domain=False)
+    out = compute_solvibly_score({})
     assert out["solviblyScore"] == 'N/A' and out["solviblyRiskBand"] == 'N/A'

@@ -51,8 +51,9 @@ function Help() {
 
       <h3>Limiti</h3>
       <p>
-        Lo strumento supporta la valutazione del professionista e dell&apos;organo di controllo, non la sostituisce. Il
-        Vecthor Index è sperimentale per le imprese non quotate: è addestrato su società quotate statunitensi.
+        Lo strumento supporta la valutazione del professionista e dell&apos;organo di controllo, non la sostituisce.
+        I modelli di previsione dell&apos;insolvenza sono stati sviluppati su campioni esteri: vanno letti insieme
+        alle verifiche CCII e alla conoscenza diretta dell&apos;impresa.
       </p>
     </Page>
   );

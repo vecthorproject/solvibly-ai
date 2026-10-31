@@ -10,6 +10,7 @@ Every component is turned into a risk in [0, 1] with a monotone mapping:
   - key ratios use simple linear bands.
 Model risks and ratio risks are aggregated with the median (robust to outliers), then
 blended with fixed weights. Missing pillars are dropped and the weights renormalised.
+The weights are expert-set and still need validation on outcome data.
 """
 from __future__ import annotations
 
@@ -18,9 +19,8 @@ from typing import Any, Dict, Optional
 
 from calculation import ALTMAN_VARIANTS, ohlson_probability, zmijewski_probability
 
-# Pillar weights. The Vecthor Index only takes part when the company matches the
-# population it was trained on (see ml_infer.vecthor_domain); otherwise its weight is 0.
-WEIGHTS = {"vecthor": 0.10, "classics": 0.45, "ratios": 0.25, "esg": 0.20}
+# Pillar weights (renormalised over the pillars that are available).
+WEIGHTS = {"classics": 0.45, "ratios": 0.25, "esg": 0.20}
 
 RISK_BAND_THRESHOLDS = (0.40, 0.60)
 
@@ -82,9 +82,8 @@ def _median(values):
     return vals[m] if len(vals) % 2 == 1 else (vals[m - 1] + vals[m]) / 2.0
 
 
-def compute_solvibly_score(results: Dict[str, Any], vecthor_in_domain: bool) -> Dict[str, Any]:
+def compute_solvibly_score(results: Dict[str, Any]) -> Dict[str, Any]:
     """Returns the fields to merge into the API results."""
-    ml = _num(results.get("vecthorMLScore"))
 
     dscr_risk = risk_around_cutoff(results.get("dscr"), cutoff=1.0, half_band=0.2)
     ohlson_p = ohlson_probability(results.get("ohlsonOScore")) if _num(results.get("ohlsonOScore")) is not None else None
@@ -128,8 +127,6 @@ def compute_solvibly_score(results: Dict[str, Any], vecthor_in_domain: bool) -> 
     classic_risk = _median(distress.values())
 
     parts = []
-    if ml is not None and vecthor_in_domain:
-        parts.append(("vecthor", _clip01(ml)))
     if classic_risk is not None:
         parts.append(("classics", _clip01(classic_risk)))
     if ratios_risk is not None:
@@ -157,7 +154,6 @@ def compute_solvibly_score(results: Dict[str, Any], vecthor_in_domain: bool) -> 
             "weights_used": {k: (WEIGHTS[k] if k in used else 0.0) for k in WEIGHTS},
             "renorm_sum": w_sum,
             "components": {
-                "vecthorMLScore": _clip01(ml) if vecthor_in_domain else None,
                 "distress_models_median": _clip01(classic_risk),
                 "ratios_median": _clip01(ratios_risk),
                 "esg_risk": _clip01(esg_risk),

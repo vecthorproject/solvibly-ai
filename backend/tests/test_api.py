@@ -32,7 +32,7 @@ def test_predict_italy_includes_crisis(client):
     assert d["crisisAssessment"]["overall"]["level"] == "red"
     assert d["altmanVariant"] == "Z1"
     assert d["inputsUsed"]["depreciation"] == 180_000  # form field name is mapped
-    assert d["vecthor"]["inDomain"] is False and d["solviblyBreakdown"]["weights_used"]["vecthor"] == 0.0
+    assert "vecthorMLScore" not in d and "vecthor" not in d["solviblyBreakdown"]["weights_used"]
 
 
 def test_predict_usa_has_no_crisis_block(client):

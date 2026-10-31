@@ -11,9 +11,6 @@ Solvibly AI reads a company's financial statements (PDF upload or manual entry) 
 - **Distress models**: Altman (Z, Z', Z'' picked by company profile), Springate, Taffler, Fulmer, Grover,
   Zmijewski, Ohlson.
 - **Solvibly Score**: a composite 0–1 risk with Low / Medium / High bands.
-- **Vecthor Index** (experimental): a calibrated Random Forest trained on US-listed companies. It enters the
-  Solvibly Score only for companies that match that population; for others (e.g. Italian SMEs) it is shown as
-  experimental.
 - A **printable report** (Print / Save PDF) with the professional's notes.
 
 > Work in progress. The tool supports the assessment of directors, statutory auditors and advisers; it does
@@ -22,7 +19,7 @@ Solvibly AI reads a company's financial statements (PDF upload or manual entry) 
 ## Tech stack
 
 - **Frontend:** React 19 + Vite, Emotion
-- **Backend:** Python 3.11+ / Flask, scikit-learn, PyMuPDF, Google Gemini (document extraction)
+- **Backend:** Python 3.11+ / Flask, PyMuPDF, Google Gemini (document extraction)
 
 ## Development
 
@@ -70,7 +67,6 @@ backend/
   calculation.py  ratios and distress models
   scoring.py      Solvibly Score (risk mappings, weights)
   crisis.py       CCII checks with legal references and thresholds
-  ml_infer.py     Vecthor Index inference (model cached in memory)
   tests/          pytest suite
 frontend/src/
   components/CrisisInput.jsx    CCII data entry (all fields optional)
@@ -83,7 +79,7 @@ frontend/src/
 Each component becomes a risk between 0 and 1: Ohlson and Zmijewski through their own probability
 (logit / probit), models with a single cut-off linearly around it (cut-off = 0.5), Altman with the thresholds
 of the variant actually computed, ratios with simple bands. Model risks and ratio risks are combined with the
-median, then blended (`scoring.py`: classics 0.45, ratios 0.25, ESG 0.20, Vecthor 0.10 when in domain).
+median, then blended (`scoring.py`: classics 0.45, ratios 0.25, ESG 0.20).
 Missing pillars are dropped and the weights renormalised. The weights are expert-set and still need
 validation on outcome data.
 

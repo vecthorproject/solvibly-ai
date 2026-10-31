@@ -3,7 +3,6 @@ import { Link, useLocation } from 'react-router-dom';
 import RatioDisplay from '../components/RatioDisplay';
 import ModelDisplay from '../components/ModelDisplay';
 import EsgDisplay from '../components/ESGDisplay.jsx';
-import VecthorIndex from '../components/VecthorIndex.jsx';
 import CrisisDisplay from '../components/CrisisDisplay.jsx';
 import usaIcon from '../graphics/Results/usa.svg';
 import italyIcon from '../graphics/Results/italy.svg';
@@ -265,7 +264,6 @@ function Results() {
   const warnings = resultsData.dataQuality?.warnings || [];
   const inputsUsed = resultsData.inputsUsed || {};
   const extraction = resultsData.extraction;
-  const vecthorInfo = resultsData.vecthor || {};
 
   const esgSource =
     resultsData.esgSource ||
@@ -387,32 +385,6 @@ function Results() {
             overall={resultsData.esgOverallScore}
           />
         </>
-      )}
-
-      {typeof resultsData.vecthorMLScore === 'number' && isFinite(resultsData.vecthorMLScore) && (
-        vecthorInfo.inDomain === false ? (
-          <NoticeBlock className="no-print">
-            <details>
-              <summary>
-                {isItaly ? 'Vecthor Index (sperimentale)' : 'Vecthor Index (experimental)'}
-              </summary>
-              <p>
-                {isItaly
-                  ? "Il modello è addestrato su società quotate statunitensi (bilanci depositati alla SEC) e non è ancora validato su imprese non quotate o italiane: il valore è mostrato solo a titolo sperimentale e non entra nel Solvibly Score."
-                  : 'The model is trained on US-listed companies (SEC filings) and is not validated for this company profile: the value is shown for experimentation only and is excluded from the Solvibly Score.'}
-              </p>
-              <VecthorIndex value={resultsData.vecthorMLScore} thresholds={[0.40, 0.60]} />
-            </details>
-          </NoticeBlock>
-        ) : (
-          <>
-            <SectionTitle>Vecthor Index</SectionTitle>
-            <VecthorIndex
-              value={resultsData.vecthorMLScore}
-              thresholds={[0.40, 0.60]}
-            />
-          </>
-        )
       )}
 
       <NoticeBlock>

@@ -18,7 +18,6 @@ from calculation import (
     compute_esg_score,
 )
 from crisis import CRISIS_NUMERIC_KEYS, CRISIS_STRING_KEYS, assess_crisis, compute_dscr_from_components
-from ml_infer import MODEL_PATH_DEFAULT, TRAINING_DOMAIN, is_calibrated, score_from_financial_dict, vecthor_in_domain
 from scoring import compute_solvibly_score
 from services import AIServiceUnavailable, ExtractionError, process_document_data, to_number
 
@@ -151,63 +150,8 @@ def _calculate_results(financial_data):
     if enriched.get("netIncome_t_minus_1") is not None:
         results["ohlsonOScore"] = calculate_ohlson_oscore(enriched)
 
-    # --- Vecthor Index ---
-    in_domain = vecthor_in_domain(fd)
-    try:
-        fin_for_model = {
-            "sic": fd.get("sic"),
-            "fiscalYear": fd.get("fiscalYear"),
-            "totalCurrentAssets": fd.get("totalCurrentAssets"),
-            "totalNonCurrentAssets": fd.get("totalNonCurrentAssets"),
-            "totalCurrentLiabilities": fd.get("totalCurrentLiabilities"),
-            "totalNonCurrentLiabilities": fd.get("totalNonCurrentLiabilities"),
-            "inventories": fd.get("inventories"),
-            "totalAssets": fd.get("totalAssets"),
-            "totalLiabilities": fd.get("totalLiabilities"),
-            "totalEquity": fd.get("totalEquity"),
-            "revenue": fd.get("revenue"),
-            "ebit": fd.get("ebit"),
-            "netIncome": fd.get("netIncome"),
-            "interestExpense": fd.get("interestExpense"),
-            "operatingCashFlow": fd.get("operatingCashFlow"),
-            "tangibleFixedAssets": fd.get("tangibleFixedAssets"),
-            "retainedEarnings": fd.get("retainedEarnings"),
-            "depreciation": fd.get("depreciation"),
-            "workingCapital": fd.get("workingCapital"),
-            "netIncome_t_minus_1": fd.get("netIncome_t_minus_1"),
-            "quickAssets": fd.get("quickAssets"),
-            "sharesOutstanding": fd.get("sharesOutstanding"),
-            "marketCapitalization": fd.get("marketCapitalization"),
-            "isPubliclyListed": fd.get("isPubliclyListed"),
-            "gnpPriceLevelIndex": fd.get("gnpPriceLevelIndex"),
-            "longTermDebtCurrent": fd.get("longTermDebtCurrent"),
-            "dscrCashFlow_proxy": fd.get("dscrCashFlow") if fd.get("dscrCashFlow") is not None else fd.get("operatingCashFlow"),
-            "dscrDebtService_proxy": (
-                fd.get("dscrDebtService")
-                if fd.get("dscrDebtService") is not None
-                else (fd.get("interestExpense") or 0.0) + (fd.get("longTermDebtCurrent") or 0.0)
-            ),
-        }
-        ml_out = score_from_financial_dict(MODEL_PATH_DEFAULT, fin_for_model)
-        p = min(max(float(ml_out["prob_12m"]), 1e-6), 1.0 - 1e-6)
-        results["vecthorMLScore"] = round(p, 6)
-    except Exception:
-        log.exception("Vecthor Index scoring failed")
-        results["vecthorMLScore"] = "N/A"
-
-    try:
-        calibrated = is_calibrated()
-    except Exception:
-        calibrated = False
-    results["vecthor"] = {
-        "inDomain": in_domain,
-        "calibrated": calibrated,
-        "trainingDomain": TRAINING_DOMAIN,
-        "usedInScore": in_domain and isinstance(results["vecthorMLScore"], float),
-    }
-
     # --- Solvibly Score ---
-    results.update(compute_solvibly_score(results, vecthor_in_domain=in_domain))
+    results.update(compute_solvibly_score(results))
 
     # --- Crisis checks (Italian CCII) ---
     if italian:

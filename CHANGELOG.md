@@ -16,15 +16,13 @@
   share capital, previous-year net income from the comparative column).
 - Scanned PDFs are sent to Gemini as PDF; only the pages with the financial statements are sent for
   long documents (e.g. a 99-page 10-K → 26 pages).
-- `/api/health`, `.env.example`, pytest suite (63 tests).
+- `/api/health`, `.env.example`, pytest suite.
 
 ### Fixed
 - Altman: the score is now compared with the thresholds of the variant actually computed (Z, Z', Z''),
   and private non-manufacturing companies use Z'' as Altman recommends.
 - Taffler: cut-off 0 for the 1983 formulation in use (the 0.2/0.3 zones belong to another version).
 - Zmijewski is mapped to its probit probability in the Solvibly Score.
-- Vecthor Index: model loaded once per process instead of at every request; calibrated model detected from
-  its metadata; excluded from the Solvibly Score for companies outside its training population.
 - Ohlson "Moderate Risk" zone shown in grey instead of yellow.
 - Corrupted accents in the Italian form labels.
 - Negative values (losses, negative equity, negative cash flow) could not be typed in the form.
@@ -34,6 +32,11 @@
 - Upload with country "USA" showed the Italian flag (country not normalised).
 - `debug=True` and CORS `*` were hard-coded; generic error messages no longer leak exceptions.
 - `requirements.txt` was UTF-16 encoded.
+
+### Removed
+- Vecthor Index (Random Forest trained on US-listed companies): not validated for the target market
+  (Italian SMEs). Model file, training script, inference code and the ML dependencies (scikit-learn,
+  pandas, numpy, scipy, joblib) are removed; they remain available in the git history.
 
 ### Changed
 - Italy is the default country.
