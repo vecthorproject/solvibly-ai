@@ -6,6 +6,9 @@ import axios from 'axios';
 import { industrySectors } from '../data/DictOb.js';
 import PopupPromptModal from './PopupPromptModal.jsx';
 import EsgInput from './ESGInput.jsx';
+import CrisisInput from './CrisisInput.jsx';
+import { crisisFieldNames, emptyCrisisData } from '../data/crisisConfig.js';
+import { makeNumberKeyDownHandler, makePasteHandler } from '../utils/numbers.js';
 import uploadDocsIcon from '../graphics/UploadDocs/uploadfindocsicon.svg';
 import pdfIcon from '../graphics/UploadDocs/pdficon.svg';
 import sendIcon from '../graphics/UploadDocs/sendicon.svg';
@@ -332,6 +335,14 @@ const StyledOptionalInput = styled.input`
   }
 `;
 
+const ProgressText = styled.p`
+  font-family: system-ui, sans-serif;
+  font-size: 0.85rem;
+  color: #4a5568;
+  margin: 0.6rem 0 0;
+  text-align: center;
+`;
+
 const OptionalBadgePanel = styled.span`
   font-size: 0.79rem;
   font-weight: 400;
@@ -366,12 +377,14 @@ function UploadYourDocsPanel() {
 
   const navigate = useNavigate();
   
-  const [selectedCountry, setSelectedCountry] = useState("usa");
+  const [selectedCountry, setSelectedCountry] = useState("italy");
   const [selectedType, setSelectedType] = useState("private");
   const [selectedSector, setSelectedSector] = useState("");
 
   const [dscrCashFlow, setDscrCashFlow] = useState("");
   const [dscrDebtService, setDscrDebtService] = useState("");
+  const [crisisData, setCrisisData] = useState(emptyCrisisData);
+  const [elapsed, setElapsed] = useState(0);
 
   const [uploadError, setUploadError] = useState(null);
   const [errorVisible, setErrorVisible] = useState(false);
@@ -389,6 +402,20 @@ function UploadYourDocsPanel() {
   useEffect(() => {
       setSelectedSector("");
   }, [selectedCountry]);
+
+  useEffect(() => {
+    setCrisisData(prev => ({ ...prev, cndcecSector: '' }));
+  }, [selectedSector]);
+
+  useEffect(() => {
+    if (!isLoading) return undefined;
+    const started = Date.now();
+    setElapsed(0);
+    const timer = setInterval(() => setElapsed(Math.round((Date.now() - started) / 1000)), 1000);
+    return () => clearInterval(timer);
+  }, [isLoading]);
+
+  const setCrisisField = (name, value) => setCrisisData(prev => ({ ...prev, [name]: value }));
 
   useEffect(() => {
     let visibilityTimer;
@@ -443,21 +470,12 @@ function UploadYourDocsPanel() {
     maxSize: 10485760, 
   });
 
-  const handleNumberInput = (e) => {
-    if (["e", "E", "+", "-"].includes(e.key)) {
-      e.preventDefault();
-    }
-    if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-      e.preventDefault();
-    }
-  };
+  const handleNumberInput = (e) => makeNumberKeyDownHandler(e.target.name === 'dscrCashFlow')(e);
 
-  const handlePaste = (e) => {
-    const paste = e.clipboardData.getData('text');
-    if (!/^\d*\.?\d*$/.test(paste)) {
-      e.preventDefault();
-    }
-  };
+  const handlePaste = (e) => makePasteHandler((name, value) => {
+    if (name === 'dscrCashFlow') setDscrCashFlow(value);
+    if (name === 'dscrDebtService') setDscrDebtService(value);
+  }, e.target.name === 'dscrCashFlow')(e);
 
   const handleWheel = (e) => {
     e.target.blur();
@@ -479,8 +497,18 @@ function UploadYourDocsPanel() {
     formData.append('country', selectedCountry);
     formData.append('companyType', selectedType);
     formData.append('industrySector', selectedSector || '');
-    formData.append('dscrCashFlow', dscrCashFlow);
-    formData.append('dscrDebtService', dscrDebtService);
+    if (selectedCountry === 'italy') {
+      crisisFieldNames.forEach((name) => {
+        const v = crisisData[name];
+        if (v !== '' && v !== null && v !== undefined) formData.append(name, v);
+      });
+      ['dscrCashFlow', 'dscrDebtService'].forEach((name) => {
+        if (crisisData[name] !== '' && crisisData[name] != null) formData.append(name, crisisData[name]);
+      });
+    } else {
+      formData.append('dscrCashFlow', dscrCashFlow);
+      formData.append('dscrDebtService', dscrDebtService);
+    }
     if (ohlsonData?.previousPdfFile) {
       formData.append('previousDocument', ohlsonData.previousPdfFile);
     }
@@ -543,7 +571,7 @@ function UploadYourDocsPanel() {
       }
       console.error("Uploading error:", error);
       if (isMountedRef.current) {
-        setUploadError("An error occurred while uploading the file.");
+        setUploadError(error?.response?.data?.error || "An error occurred while uploading the file.");
         setIsLoading(false);
         setIsAnalyzing(false);
       }
@@ -637,6 +665,18 @@ function UploadYourDocsPanel() {
 
           </SelectorsContainer>
 
+          {selectedCountry === 'italy' ? (
+            <>
+              <OptionalSectionLabel>VERIFICA CRISI D&apos;IMPRESA (CCII)<OptionalBadgePanel>*Facoltativo</OptionalBadgePanel></OptionalSectionLabel>
+              <CrisisInput
+                value={crisisData}
+                onChange={setCrisisField}
+                industrySector={selectedSector}
+                balanceSheetHint="Vengono lette dal bilancio quando presenti (nel bilancio abbreviato i debiti tributari e previdenziali sono spesso aggregati): compila solo per integrare o correggere."
+              />
+            </>
+          ) : (
+          <>
           <OptionalSectionLabel>PROSPECTIVE DATA (DSCR)<OptionalBadgePanel>*Optional</OptionalBadgePanel></OptionalSectionLabel>
           <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
             <StyledOptionalInput 
@@ -660,6 +700,8 @@ function UploadYourDocsPanel() {
               onWheel={handleWheel}
             />
           </div>
+          </>
+          )}
           
           <OptionalSectionLabel>SUSTAINABILITY (ESG)<OptionalBadgePanel>*Optional</OptionalBadgePanel></OptionalSectionLabel>
           <EsgInput onChange={handleEsgChange} />
@@ -725,9 +767,18 @@ function UploadYourDocsPanel() {
 
           <LoadingFeedbackWrapper>
               {isLoading && (
-                <ProgressBarContainer>
-                  <ProgressBarFill progress={uploadProgress} />
-                </ProgressBarContainer>
+                <>
+                  <ProgressBarContainer>
+                    <ProgressBarFill progress={uploadProgress} />
+                  </ProgressBarContainer>
+                  <ProgressText aria-live="polite">
+                    {!isAnalyzing
+                      ? (selectedCountry === 'italy' ? 'Caricamento del documento…' : 'Uploading the document…')
+                      : (selectedCountry === 'italy'
+                          ? `Lettura delle pagine di bilancio ed estrazione delle voci con AI, poi calcolo degli indicatori — ${elapsed}s (di solito meno di un minuto)`
+                          : `Reading the statement pages and extracting the items with AI, then computing the indicators — ${elapsed}s (usually under a minute)`)}
+                  </ProgressText>
+                </>
               )}
 
               <ButtonWrapper>

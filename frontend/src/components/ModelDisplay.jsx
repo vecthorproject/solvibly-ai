@@ -152,27 +152,24 @@ const SubLabelText = styled.span`
   color: #718096;
 `;
 
-const riskZoneColors = {
-  'Safe Zone': '#B7F0D8',
-  'Low Risk': '#B7F0D8',
-  'Non-Distress': '#B7F0D8',
-  'Non-Distressed': '#B7F0D8',
-  'Grey Zone': '#FAF3B6',
-  'Distress Zone': '#F8B4B4',
-  'High Risk': '#F8B4B4',
-  'Failure Zone': '#F8B4B4',
-  'Distressed': '#F8B4B4',
-  'N/A': '#718096'
-};
+const ZONE_COLORS = { critical: '#F8B4B4', adequate: '#FAF3B6', good: '#B7F0D8', na: '#E2E8F0' };
 
 const RiskZoneValue = styled.strong`
-  background-color: ${props => riskZoneColors[props.zone] || '#718096'};
+  background-color: ${props => ZONE_COLORS[props.tone] || ZONE_COLORS.na};
   margin: 0.25rem;
   padding: 0.15rem 0.30rem;
   border: 1px solid white;
   border-radius: 8px;
   font-weight: 500;
   font-family: "Sansation", sans-serif;
+`;
+
+const VariantNote = styled.p`
+  margin: -0.5rem 0 0 0;
+  font-family: system-ui, sans-serif;
+  font-size: 0.8rem;
+  color: #718096;
+  text-align: left;
 `;
 
 const LearnMoreBtn = styled.button`
@@ -264,17 +261,20 @@ function formatModelValue(value) {
 
 // --- MAIN COMPONENT ---
 
-function ModelDisplay({ title, value, modelKey }) {
+function ModelDisplay({ title, value, modelKey, thresholdsOverride, subtitle }) {
     const [expandedSection, setExpandedSection] = useState(false);
 
-    const config = modelThresholds[modelKey];
+    const baseConfig = modelThresholds[modelKey];
+    const config = baseConfig && Array.isArray(thresholdsOverride) && thresholdsOverride.length === 2
+      ? { ...baseConfig, thresholds: thresholdsOverride }
+      : baseConfig;
     const isNumericValue = typeof value === 'number';
     const details = modelLearnMoreDict[modelKey] || {};
     const formattedValue = formatModelValue(value);
     
     const isBinary = config && config.labels[1] === '';
 
-    let markerPosition, stop1, stop2, labelPositions, riskZone;
+    let markerPosition, stop1, stop2, labelPositions, riskZone, zoneTone = 'na';
     let t1, t2; 
     let greyZoneWidth = 0;
     
@@ -289,17 +289,20 @@ function ModelDisplay({ title, value, modelKey }) {
         }
 
         const [label1, midLabel, label3] = config.labels;
+        // Zone index along the bar: 0 = left, 1 = middle, 2 = right.
+        let zoneIdx;
         if (isBinary) {
-          riskZone = value < t1 ? label1 : label3;
+          zoneIdx = value < t1 ? 0 : 2;
+        } else if (value < Math.min(t1, t2)) {
+          zoneIdx = 0;
+        } else if (value > Math.max(t1, t2)) {
+          zoneIdx = 2;
         } else {
-            if (value < Math.min(t1, t2)) {
-                riskZone = label1;
-            } else if (value > Math.max(t1, t2)) {
-                riskZone = label3;
-            } else {
-                riskZone = midLabel;
-            }
+          zoneIdx = 1;
         }
+        riskZone = [label1, midLabel, label3][zoneIdx];
+        const tones = config.logic === 'lower' ? ['good', 'adequate', 'critical'] : ['critical', 'adequate', 'good'];
+        zoneTone = tones[zoneIdx];
     }
     
     const gaugeLabels = config?.labels || ['N/A', 'N/A', 'N/A'];
@@ -320,6 +323,7 @@ function ModelDisplay({ title, value, modelKey }) {
                 <StyledTitle>{title}</StyledTitle>
                 <StyledTitle>{formattedValue}</StyledTitle>
             </RatioBlock>
+            {subtitle && <VariantNote>{subtitle}</VariantNote>}
             
             {isNumericValue && config && (
                 <>
@@ -357,7 +361,7 @@ function ModelDisplay({ title, value, modelKey }) {
             )}
 
             <SubLabelText>Risk Zone:
-              <RiskZoneValue zone={riskZone || 'N/A'}>{riskZone || 'N/A'}</RiskZoneValue>
+              <RiskZoneValue tone={zoneTone}>{riskZone || 'N/A'}</RiskZoneValue>
             </SubLabelText>
 
             <LearnMoreBtn onClick={() => setExpandedSection(!expandedSection)}>
