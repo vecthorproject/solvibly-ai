@@ -14,7 +14,12 @@ no AI, current and previous year, ATECO code and legal form included), a **PDF**
 - **Distress models**: Altman (Z, Z', Z'' picked by company profile), Springate, Taffler, Fulmer, Grover,
   Zmijewski, Ohlson.
 - **Solvibly Score**: a composite 0–1 risk with Low / Medium / High bands.
+- **Comparison with the previous year** (from XBRL: key figures, ratios and CNDCEC indices for both years).
 - A **printable report** (Print / Save PDF) with the professional's notes.
+- An optional **client archive**: accounts, clients (matched by tax code or name), saved analyses with notes
+  and the trend across years. Only computed results are stored, never the uploaded documents.
+
+The interface is in Italian.
 
 > Work in progress. The tool supports the assessment of directors, statutory auditors and advisers; it does
 > not replace it.
@@ -65,23 +70,48 @@ npm run build
 | `ALLOWED_ORIGINS` | Comma-separated CORS origins | `http://localhost:5173,http://127.0.0.1:5173` |
 | `FLASK_DEBUG` | Flask debug mode (development only) | `0` |
 | `MAX_UPLOAD_MB` | Max request size | `25` |
+| `DATABASE_URL` | Postgres URL for the client archive (e.g. Neon). Empty locally: SQLite in `backend/data/`. Empty on Render: archive disabled | — |
+| `SECRET_KEY` | Signs login tokens. Required in production (long random string) | random per process (dev) |
+
+Frontend (build time): `VITE_API_URL`, the backend URL when the frontend is served from another domain
+(e.g. `https://solvibly-ai-backend.onrender.com`). Leave empty in development.
+
+## Deploy (Render + Neon, free tiers)
+
+1. **Database**: create a free Postgres project on [Neon](https://neon.tech) in an EU region and copy the
+   connection string.
+2. **Backend** (Render web service, root `backend`, build `pip install -r requirements.txt`, start
+   `gunicorn app:app`): set `ANTHROPIC_API_KEY`, `DATABASE_URL`, `SECRET_KEY` and
+   `ALLOWED_ORIGINS=https://<frontend>.onrender.com`. Tables are created at startup.
+3. **Frontend** (Render static site, root `frontend`, build `npm ci && npm run build`, publish `dist`): set
+   `VITE_API_URL=https://<backend>.onrender.com` and add the rewrite rule `/*` → `/index.html` so that
+   links like `/clienti/3` work on reload.
+
+The free Render web service sleeps after 15 minutes without requests; the first request then takes about a
+minute.
 
 ## How it works
 
 ```
 backend/
   app.py          Flask app factory, CORS, upload limits, /api/health
-  controller.py   /api/predict (manual data) and /api/upload (PDF) → results JSON
+  controller.py   /api/predict (manual data) and /api/upload (PDF or XBRL) → results JSON
   services.py     PDF reading (only the statement pages; scanned PDFs sent as PDF), AI extraction (Claude / Gemini)
   xbrl_it.py      Italian XBRL reader (taxonomy itcc-ci): facts, current/previous year, ATECO → sector
   calculation.py  ratios and distress models
   scoring.py      Solvibly Score (risk mappings, weights)
   crisis.py       CCII checks with legal references and thresholds
+  db.py           database setup (Postgres via DATABASE_URL, SQLite locally): users, clients, analyses
+  archive.py      /api/auth/*, /api/clients, /api/analyses (token auth, per-user data)
   tests/          pytest suite
 frontend/src/
   components/CrisisInput.jsx    CCII data entry (all fields optional)
   components/CrisisDisplay.jsx  CCII results, missing data, notes, references
-  pages/Results.jsx             results page and printable report
+  components/ResultsView.jsx    results page, printable report, save to archive
+  components/YearComparison.jsx comparison with the previous year
+  auth/                         login state and token handling
+  pages/Login, Clients, ClientDetail, SavedAnalysis   client archive
+  pages/Privacy, Terms          draft legal pages (to be reviewed by a lawyer)
 ```
 
 ### Score methodology
