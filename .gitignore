@@ -32,3 +32,6 @@ __pycache__/
 
 # Environment variables
 backend/.env
+
+# Local SQLite archive (development)
+backend/data/

@@ -9,5 +9,8 @@ anthropic==2.3.0
 # XBRL import: safe XML parsing and signed (.p7m) files
 defusedxml==0.7.1
 asn1crypto==1.5.1
+# Archive (accounts, clients, saved analyses): Postgres via DATABASE_URL, SQLite locally
+SQLAlchemy==2.1.6
+psycopg[binary]==3.3.6
 # Only used with AI_PROVIDER=gemini
 google-genai==1.43.0
