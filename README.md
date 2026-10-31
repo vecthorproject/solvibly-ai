@@ -35,7 +35,10 @@ python app.py                       # http://127.0.0.1:5000
 pytest                              # unit + API tests
 ```
 
-Production: `gunicorn app:app` with `FLASK_DEBUG=0` and `ALLOWED_ORIGINS` set to the frontend domain.
+Production: `gunicorn app:app` (settings in `gunicorn.conf.py`, 180 s timeout for AI extraction) with
+`FLASK_DEBUG=0` and `ALLOWED_ORIGINS` set to the frontend domain. The Python version is pinned in
+`.python-version` (3.13). `requirements.txt` is fully pinned and contains only packages with prebuilt
+wheels for Python 3.13 and 3.14; direct dependencies are in `requirements.in`.
 
 ### Frontend
 

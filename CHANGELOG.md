@@ -35,6 +35,10 @@
 - Upload with country "USA" showed the Italian flag (country not normalised).
 - `debug=True` and CORS `*` were hard-coded; generic error messages no longer leak exceptions.
 - `requirements.txt` was UTF-16 encoded.
+- Deploy build ran out of memory: `requirements.txt` was a full freeze of an old environment (including the
+  unused gRPC stack) with versions that have no prebuilt wheels for Python 3.14, so they were compiled from
+  source. It now pins only what the backend uses, all available as wheels for Python 3.13 and 3.14;
+  `.python-version` pins Python 3.13 and `gunicorn.conf.py` raises the worker timeout to 180 s.
 
 ### Removed
 - Vecthor Index (Random Forest trained on US-listed companies): not validated for the target market
