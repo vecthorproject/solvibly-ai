@@ -125,3 +125,12 @@ def test_upload_too_large_has_italian_message(monkeypatch):
     r = c.post("/api/upload", data={"file": (big, "big.pdf")}, content_type="multipart/form-data")
     assert r.status_code == 413
     assert r.get_json()["error"] == "File troppo grande (massimo 1 MB in totale)."
+
+
+def test_cors_allows_render_frontends(client):
+    r = client.get("/api/health", headers={"Origin": "https://solvibly-ai-frontend.onrender.com"})
+    assert r.headers.get("Access-Control-Allow-Origin") == "https://solvibly-ai-frontend.onrender.com"
+    r = client.get("/api/health", headers={"Origin": "https://evil.example.com"})
+    assert r.headers.get("Access-Control-Allow-Origin") is None
+    r = client.get("/api/health", headers={"Origin": "https://x.onrender.com.evil.example"})
+    assert r.headers.get("Access-Control-Allow-Origin") is None

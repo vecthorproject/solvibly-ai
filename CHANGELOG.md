@@ -12,7 +12,10 @@
   Postgres via `DATABASE_URL` (e.g. Neon), SQLite locally; disabled on Render when no database is set.
 - Draft privacy policy (`/privacy`) and terms of use (`/termini`), describing the actual data flows. To be
   completed and reviewed by a lawyer.
-- `VITE_API_URL` so the frontend can be deployed on a different domain from the backend.
+- `VITE_API_URL` so the frontend can be deployed on a different domain from the backend; without it the
+  app falls back to the production backend when the host does not forward `/api`. Origins on
+  `*.onrender.com` are allowed by the backend's CORS by default.
+- `SECRET_KEY` is optional: the token-signing key is generated once and stored in the database.
 - 404 page.
 
 ### Changed

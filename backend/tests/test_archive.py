@@ -140,6 +140,44 @@ def test_archive_disabled_on_render_without_config(monkeypatch):
     archive.init_auth()
 
 
+def test_signing_key_is_kept_in_the_database(monkeypatch):
+    monkeypatch.delenv("SECRET_KEY", raising=False)
+    db.init_db()
+    assert archive.init_auth() is None
+    first = archive._secret_key
+    assert len(first) == 64
+    token = archive._token_for(123)
+    # A restart (new process) finds the same key, so existing logins stay valid.
+    archive._secret_key = None
+    assert archive.init_auth() is None
+    assert archive._secret_key == first
+    assert archive._serializer().loads(token, max_age=60)["uid"] == 123
+    # An explicit SECRET_KEY always wins over the stored one.
+    monkeypatch.setenv("SECRET_KEY", "explicit-key")
+    archive.init_auth()
+    assert archive._secret_key == "explicit-key"
+    monkeypatch.undo()
+    db.init_db()
+    archive.init_auth()
+
+
+def test_get_or_create_setting_survives_a_race(monkeypatch):
+    from sqlalchemy import insert
+    db.init_db()
+    calls = []
+
+    def make_value():
+        calls.append(1)
+        # Another worker wins the insert between our select and our insert.
+        with db.get_engine().begin() as conn:
+            conn.execute(insert(db.settings).values(key="race-test", value="winner"))
+        return "loser"
+
+    assert db.get_or_create_setting("race-test", make_value) == "winner"
+    assert db.get_or_create_setting("race-test", make_value) == "winner"
+    assert len(calls) == 1
+
+
 def test_postgres_url_is_normalised(monkeypatch):
     monkeypatch.setenv("DATABASE_URL", "postgres://u:p@host:5432/dbname")
     assert db._database_url() == "postgresql+psycopg://u:p@host:5432/dbname"

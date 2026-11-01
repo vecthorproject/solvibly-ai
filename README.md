@@ -71,21 +71,23 @@ npm run build
 | `FLASK_DEBUG` | Flask debug mode (development only) | `0` |
 | `MAX_UPLOAD_MB` | Max request size | `25` |
 | `DATABASE_URL` | Postgres URL for the client archive (e.g. Neon). Empty locally: SQLite in `backend/data/`. Empty on Render: archive disabled | — |
-| `SECRET_KEY` | Signs login tokens. Required in production (long random string) | random per process (dev) |
+| `SECRET_KEY` | Optional. Signs login tokens; if empty a key is generated once and stored in the database | stored in the database |
 
-Frontend (build time): `VITE_API_URL`, the backend URL when the frontend is served from another domain
-(e.g. `https://solvibly-ai-backend.onrender.com`). Leave empty in development.
+Frontend (build time, optional): `VITE_API_URL`, the backend URL when the frontend is served from another
+domain. If it is empty the app uses relative `/api` URLs (Vite proxy in development, the host's rewrite
+rule in production) and, when those return the host's own HTML or a 404, falls back to the production
+backend named in `frontend/src/api.js`.
 
 ## Deploy (Render + Neon, free tiers)
 
 1. **Database**: create a free Postgres project on [Neon](https://neon.tech) in an EU region and copy the
    connection string.
 2. **Backend** (Render web service, root `backend`, build `pip install -r requirements.txt`, start
-   `gunicorn app:app`): set `ANTHROPIC_API_KEY`, `DATABASE_URL`, `SECRET_KEY` and
-   `ALLOWED_ORIGINS=https://<frontend>.onrender.com`. Tables are created at startup.
-3. **Frontend** (Render static site, root `frontend`, build `npm ci && npm run build`, publish `dist`): set
-   `VITE_API_URL=https://<backend>.onrender.com` and add the rewrite rule `/*` → `/index.html` so that
-   links like `/clienti/3` work on reload.
+   `gunicorn app:app`): set `ANTHROPIC_API_KEY` and `DATABASE_URL`. Tables are created at startup.
+   Origins on `*.onrender.com` are allowed by default; add others with `ALLOWED_ORIGINS`.
+3. **Frontend** (Render static site, root `frontend`, build `npm ci && npm run build`, publish `dist`): add
+   the rewrite rule `/*` → `/index.html` so that links like `/clienti/3` work on reload (and, if you also
+   forward `/api/*` to the backend, keep that rule above it).
 
 The free Render web service sleeps after 15 minutes without requests; the first request then takes about a
 minute.

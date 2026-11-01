@@ -12,7 +12,7 @@ from __future__ import annotations
 import logging
 import os
 from datetime import datetime, timezone
-from typing import Optional
+from typing import Callable, Optional
 
 from sqlalchemy import (
     Column,
@@ -26,7 +26,9 @@ from sqlalchemy import (
     Text,
     create_engine,
 )
+from sqlalchemy import insert, select
 from sqlalchemy.engine import Engine
+from sqlalchemy.exc import IntegrityError
 
 log = logging.getLogger(__name__)
 
@@ -63,6 +65,13 @@ analyses = Table(
     Column("results_json", Text, nullable=False),
     Column("created_at", DateTime(timezone=True), nullable=False),
     Column("updated_at", DateTime(timezone=True), nullable=False),
+)
+
+# Server-side settings generated once and kept with the data (e.g. the key that signs login tokens).
+settings = Table(
+    "settings", metadata,
+    Column("key", String(64), primary_key=True),
+    Column("value", Text, nullable=False),
 )
 
 _engine: Optional[Engine] = None
@@ -113,6 +122,24 @@ def init_db() -> None:
 
 def get_engine() -> Optional[Engine]:
     return _engine
+
+
+def get_or_create_setting(key: str, make_value: Callable[[], str]) -> str:
+    """Returns the stored value for `key`, creating it with make_value() the first time.
+    Safe when several workers start at once: the loser of the insert race reads the winner's value."""
+    assert _engine is not None
+    with _engine.begin() as conn:
+        row = conn.execute(select(settings.c.value).where(settings.c.key == key)).first()
+        if row:
+            return row[0]
+    value = make_value()
+    try:
+        with _engine.begin() as conn:
+            conn.execute(insert(settings).values(key=key, value=value))
+        return value
+    except IntegrityError:
+        with _engine.begin() as conn:
+            return conn.execute(select(settings.c.value).where(settings.c.key == key)).scalar_one()
 
 
 def disabled_reason() -> Optional[str]:

@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AuthContext, readToken, writeToken } from './context.js';
+import { fetchArchiveStatus } from '../api.js';
 
 // Keeps the logged-in user, attaches the token to every API call and checks
 // whether the archive (accounts, clients, saved analyses) is enabled on the server.
@@ -30,7 +31,7 @@ export default function AuthProvider({ children }) {
     let cancelled = false;
     (async () => {
       try {
-        const { data } = await axios.get('/api/archive/status');
+        const data = await fetchArchiveStatus();
         if (!cancelled) setArchive({ enabled: !!data.enabled, reason: data.reason || null, checked: true });
         if (data.enabled && tokenRef.current) {
           try {

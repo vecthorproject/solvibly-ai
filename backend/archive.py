@@ -2,7 +2,8 @@
 archive.py — Accounts, clients and saved analyses (Flask blueprint).
 
 Authentication: email + password (hashed with Werkzeug's scrypt), signed bearer tokens valid 30 days
-(itsdangerous, key from SECRET_KEY). Every query is scoped to the logged-in user.
+(itsdangerous). The signing key is SECRET_KEY when set; otherwise it is generated once and stored in
+the database next to the data it protects. Every query is scoped to the logged-in user.
 """
 from __future__ import annotations
 
@@ -37,17 +38,21 @@ _failures_lock = threading.Lock()
 
 
 def init_auth() -> Optional[str]:
-    """Returns an error message when the archive cannot work (missing SECRET_KEY in production)."""
+    """Chooses the key that signs login tokens. Call after db.init_db().
+    Returns a warning when the key is random (logins reset at every restart)."""
     global _secret_key
     key = os.getenv("SECRET_KEY", "").strip()
-    if not key:
-        if os.getenv("RENDER"):
-            _secret_key = None
-            return "Archivio non configurato sul server: manca SECRET_KEY."
-        key = secrets.token_hex(32)
-        log.warning("SECRET_KEY not set: using a random key (logins reset at every restart).")
-    _secret_key = key
-    return None
+    if key:
+        _secret_key = key
+        return None
+    if db.get_engine() is not None:
+        try:
+            _secret_key = db.get_or_create_setting("auth_secret", lambda: secrets.token_hex(32))
+            return None
+        except Exception:
+            log.exception("Could not read or store the signing key in the database")
+    _secret_key = secrets.token_hex(32)
+    return "SECRET_KEY not set and no database: using a random key (logins reset at every restart)."
 
 
 def _serializer() -> URLSafeTimedSerializer:
@@ -62,7 +67,7 @@ def _unavailable_reason() -> Optional[str]:
     if db.get_engine() is None:
         return db.disabled_reason() or "Archivio non disponibile."
     if not _secret_key:
-        return "Archivio non configurato sul server: manca SECRET_KEY."
+        return "Archivio non disponibile: chiave di firma non inizializzata."
     return None
 
 

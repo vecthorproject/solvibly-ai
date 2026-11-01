@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 
 from dotenv import load_dotenv
 from flask import Flask, jsonify
@@ -12,6 +13,9 @@ import db  # noqa: E402
 from controller import predict, upload  # noqa: E402
 
 DEFAULT_ORIGINS = "http://localhost:5173,http://127.0.0.1:5173"
+# The frontend is normally hosted on Render as well. No cookies are used (bearer tokens only), so a
+# cross-origin page cannot act with someone else's login: allowing the Render domain is safe.
+RENDER_ORIGINS = re.compile(r"^https://[a-z0-9-]+\.onrender\.com$")
 
 
 def create_app():
@@ -25,7 +29,7 @@ def create_app():
     app.config["MAX_CONTENT_LENGTH"] = int(os.getenv("MAX_UPLOAD_MB", "25")) * 1024 * 1024
 
     origins = [o.strip() for o in os.getenv("ALLOWED_ORIGINS", DEFAULT_ORIGINS).split(",") if o.strip()]
-    CORS(app, resources={r"/api/*": {"origins": origins}})
+    CORS(app, resources={r"/api/*": {"origins": origins + [RENDER_ORIGINS]}})
 
     db.init_db()
     auth_problem = archive.init_auth()

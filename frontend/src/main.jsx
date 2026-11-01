@@ -1,13 +1,12 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import axios from 'axios'
 import './index.css'
 import App from './App.jsx'
+import { configureApiBase } from './api.js'
 
-// In production the frontend can live on a different domain from the backend:
-// set VITE_API_URL (e.g. https://solvibly-ai-backend.onrender.com) at build time.
-// In development it stays empty and Vite proxies /api to the local backend.
-axios.defaults.baseURL = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '')
+// Where the API lives: VITE_API_URL at build time, otherwise relative URLs (Vite proxy in development,
+// the host's rewrite rule in production, with a fallback to the known backend — see api.js).
+configureApiBase()
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
